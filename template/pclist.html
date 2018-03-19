@@ -52,7 +52,7 @@
                             if(keyword){
                                 var search = keyword;
                             }else{
-                                var search = '';
+                                var search = this.pc_search;
                             }
                             var url = '/eq/pc_list_data/?page=' + page + '&search=' + search;
                             this.$http.get(url).then(

@@ -177,11 +177,22 @@ def pc_list_data(request):
     if request.method == 'GET':
         page = request.GET.get('page')
         num = request.GET.get('num')
-        keyword = request.GET.get('search','')
-        print type(keyword)
-        print keyword
+        keyword = request.GET.get('search','').strip()
+        #print type(keyword)
+        #print keyword
         if keyword:
-            sql = "select * from Equipment_pc where Equipment_pc.user LIKE" +" '%" + keyword + "%'" + "or Equipment_pc.ip LIKE" +" '%" + keyword + "%'"
+            sql = (
+                  "select * from Equipment_pc"
+                  " where Equipment_pc.user LIKE" +" '%" + keyword + "%'"
+                  " or Equipment_pc.ip LIKE " +" '%" + keyword + "%'"
+                  " or Equipment_pc.mac LIKE" +" '%" + keyword + "%'"
+                  " or Equipment_pc.cpu LIKE" + " '%" + keyword + "%'"
+                  " or Equipment_pc.memory LIKE" + " '%" + keyword + "%'"
+                  " or Equipment_pc.disk LIKE" + " '%" + keyword + "%'"
+                  " or Equipment_pc.display LIKE" + " '%" + keyword + "%'"
+                  " or Equipment_pc.department LIKE" + " '%" + keyword + "%'"
+                  " or Equipment_pc.note LIKE" + " '%" + keyword + "%'"
+            )
             print sql
         else:
             sql = 'select * from Equipment_pc'
