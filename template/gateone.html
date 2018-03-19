@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+    Gateone
+{% endblock %}
+
+{% block style %}
+    <script src="{% static 'jquery/jquery-1.10.1.js' %}"></script>
+    <script src="{% static 'gateone/gateone.js' %}"></script>
+    <script>
+        $(function () {
+            var ip = '192.168.1.4';
+            var user = 'root';
+            var port = 22;
+            var ssh_url = 'ssh://'+user+'@'+ip+':'+port;
+            //请求认证信息
+            $.ajax(
+                {
+                    url:'{% url 'get_auth_obj' %}',
+                    type:'GET',
+                    dataType:'json',
+                    success:function (data) {
+                        console.log(data);
+                        var auth_message = data.auth;
+                        var auth_url = data.url;
+                        GateOne.init(
+                            {
+                                auth:auth_message,
+                                url:auth_url,
+                                theme:'solarized',
+                                goDiv:'#gateone',
+                                disableTermTransitions:'true',
+                                autoConnectURL:ssh_url
+                            }
+                        );
+                    }
+                }
+            );
+            GateOne.Base.superSandbox("GateOne.SomePlugin", ["GateOne", "GateOne.Net",  "GateOne.Terminal.Input", "GateOne.Terminal"], function(window, undefined) {
+
+                var location =  ip;
+                GateOne.prefs.autoConnectURL=ssh_url;
+                GateOne.prefs.fontSize="100%";
+                GateOne.prefs.scrollback = 10000;  // scrollback buffer up to 10,000 lines
+                GateOne.Terminal.loadFont("Source Code Pro", "150%");
+{#                GateOne.locations; // Holds the state of all current known/open locations#}
+                GateOne.Net.setLocation(location);
+                <!--记录登录状态-->
+
+            });
+
+
+        })
+    </script>
+{% endblock %}
+
+{% block label %}
+
+{% endblock %}
+
+{% block content %}
+    <div id = "gateone_container" style = "position:relative; width: 110em; height: 50em;">
+        <div id = 'gateone'></div>
+    </div>
+{% endblock %}

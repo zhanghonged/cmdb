@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+    PC
+{% endblock %}
+
+{% block style %}
+    <script src="{% static 'jquery/jquery-1.10.1.js' %}"></script>
+    <script>
+        function data_list() {
+            // 数据展示部分，下面是使用vue展示分页数据
+            // 请求方式为vue-ajax请求
+            Vue.use(VueResource); //这里在强调我们用vue-resource.js代替vue.js
+
+            // 设置 POST 请求时 的 data 格式
+            Vue.http.options.emulateJSON = true;
+
+            new Vue(
+                {
+                    el: '#mypc',
+                    data: {
+                        pc_deparments:['宙合','译喵','财务'],
+                        pc_data: '',
+                        pc_range: '',
+                        pc_current: '',
+                        pc_maxpage: '',
+                        pc_search:'',
+                        pc_edit:{},
+                        pc_del_id:'',
+                        pc_del_user:''
+                    },
+                    created: function () {
+                        var url = '/eq/pc_list_data/?page=1';
+                        this.$http.get(url).then(
+                            //请求成功
+                            function (data) {
+                                //console.log(data);
+                                this.pc_data = data.data.page_data;
+                                this.pc_range = data.data.page_range;
+                                this.pc_current = data.data.current_page;
+                                this.pc_maxpage = data.data.max_page;
+                            },
+                            //请求失败
+                            function (response) {
+                                console.log(response)
+                            }
+                        );
+                    },
+                    methods: {
+                        getpage: function (page,keyword) {
+                            if(keyword){
+                                var search = keyword;
+                            }else{
+                                var search = '';
+                            }
+                            var url = '/eq/pc_list_data/?page=' + page + '&search=' + search;
+                            this.$http.get(url).then(
+                                function (data) {
+                                    //console.log(data);
+                                    this.pc_data = data.data.page_data;
+                                    this.pc_range = data.data.page_range;
+                                    this.pc_current = data.data.current_page;
+                                    this.pc_maxpage = data.data.max_page;
+                                },
+                                function (response) {
+                                    console.log(response)
+                                }
+                            );
+                        },
+                        //vue ajax get 请求 ,用于从后台获取当前pc的值
+                        pcedit:function (id) {
+                            //如果id存在，则为修改数据，
+                            var url = '/eq/pc_edit/?pid=' + id;
+                            this.$http.get(url).then(
+                                //请求成功
+                                function (data) {
+                                    this.pc_edit = data.data.data
+                                },
+                                //请求失败
+                                function (response) {
+                                    console.log(response);
+                                }
+                            )
+                        },
+                        //vue ajax post请求，用于post提交修改pc信息
+                        pcedit_save:function (id) {
+                            //通过vue数据双向绑定获取修改pc表单的值
+                            var data = this.pc_edit;
+                            data['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                            //id存在，则为修改
+                            if(id){
+                                data['pid'] = id;
+                                //console.log(data);
+                                //console.log('修改信息');
+                                var url = '/eq/pc_edit/';
+                                this.$http.post(url,data).then(
+                                    //请求成功
+                                    function (data) {
+                                        console.log(data);
+                                        $(location).attr('href', '{% url 'pc_list' %}');
+                                    },
+                                    //请求失败
+                                    function (response) {
+                                        console.log(response);
+                                    }
+                                )
+                            }else{  //不存在则为新增
+                                var addurl = '/eq/pc_add/';
+                                this.$http.post(addurl,data).then(
+                                    function (data) {
+                                        console.log(data);
+                                        $(location).attr('href', '{% url 'pc_list' %}');
+                                    },
+                                    function (response) {
+                                        console.log(response)
+                                    }
+                                )
+                            }
+
+                        },
+                        //vue ajax get 请求，用于从后台获取当前pc的id
+                        pcdel:function (id,user) {
+                            this.pc_del_id = id;
+                            this.pc_del_user = user;
+                        },
+                        //vue ajax get 请求，用于删除pc
+                        pcdel_save:function (id) {
+                            var url = '/eq/pc_del/?pid=' + id;
+                            this.$http.get(url).then(
+                                //请求成功
+                                function (data) {
+                                    console.log(data);
+                                    $(location).attr('href', '{% url 'pc_list' %}');
+                                },
+                                //请求失败
+                                function (response) {
+                                    console.log(response);
+                                }
+                            )
+                        },
+                        //搜索按钮
+                        pcsearch:function () {
+                            var keyword = this.pc_search;
+                            console.log(keyword);
+                            var page = 1;
+                            this.getpage(page,keyword);
+
+                        }
+                    }
+                }
+            );
+        }
+
+        $(function () {
+            data_list();
+        })
+    </script>
+{% endblock %}
+
+{% block label %}
+    设备管理-
+    <small>PC</small>
+{% endblock %}
+
+
+{% block content %}
+    <!--PC添加部分-->
+    <div id="mypc">
+    {% verbatim myblock %}
+    <div class="row">
+        <div class="col-lg-11">
+            <div class="pull-right form-inline">
+                    <div class="input-group ">
+                        <input id="search" type="text" class="form-control" placeholder="搜索" name="search" v-model="pc_search">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" id="searchButton" v-on:click="pcsearch()">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </span>
+                    </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal"
+                    data-target="#editPc">
+                添加PC
+            </button>
+            <!--模态框开始，设置PC信息的模态框，包括新增和修改-->
+            <div class="modal fade" id="editPc" tabindex="-1" role="dialog" aria-labelledby="editPc">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header pannel-heading">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                &times;
+                            </button>
+                            <h4 class="modal-title" id="editPcTitle">PC信息设置</h4>
+                        </div>
+                        <div class="panel-body">
+                            <div class="modal-body">
+                                <form id="editPcForm" class="form-horizontal">
+                                    <div class="form-group">
+                                        <label for="ip" class="control-label col-sm-2">使用者</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="user" id="e-user" v-model="pc_edit.user">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ip" class="control-label col-sm-2">IP地址</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="ip" id="e-ip" v-model="pc_edit.ip">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="port" class="control-label col-sm-2">MAC地址</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="mac" id="e-mac" v-model="pc_edit.mac">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="username" class="control-label col-sm-2">CPU</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="cpu" id="e-cpu" v-model="pc_edit.cpu">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password" class="control-label col-sm-2">内存</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="memory" id="e-memory" v-model="pc_edit.memory">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password" class="control-label col-sm-2">硬盘</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="disk" id="e-disk" v-model="pc_edit.disk">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password" class="control-label col-sm-2">显示器</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="display" id="e-display" v-model="pc_edit.display">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password" class="control-label col-sm-2">部门</label>
+                                        <div class="col-sm-10">
+                                            <select class="form-control" name="department" id="e-department" v-model="pc_edit.department">
+                                                <option  v-for="d in pc_deparments" v-bind:value="d">{{ d }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password" class="control-label col-sm-2">备注</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" type="text" name="note" id="e-note" v-model="pc_edit.note">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            <button v-on:click="pcedit_save(pc_edit.id)" id="PcEditSubmit" class="btn btn-success" data-dismiss="modal">
+                                提交
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--设置PC模态框结束-->
+        </div>
+    </div>
+    <br>
+    <!--服务器展示部分-->
+    <div class="row">
+            <div class="col-lg-12">
+                <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>姓名</th>
+                        <th>IP</th>
+                        <th>MAC</th>
+                        <th>CPU</th>
+                        <th>内存</th>
+                        <th>硬盘</th>
+                        <th>显示器</th>
+                        <th>部门</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="odd gradeX" v-for='(pc,index) in pc_data'>
+                        <td>{{ index+1 }}</td>
+                        <td>{{ pc.user }}</td>
+                        <td>{{ pc.ip }}</td>
+                        <td>{{ pc.mac }}</td>
+                        <td>{{ pc.cpu }}</td>
+                        <td>{{ pc.memory }}</td>
+                        <td>{{ pc.disk }}</td>
+                        <td>{{ pc.display }}</td>
+                        <td>{{ pc.department }}</td>
+                        <td>{{ pc.note }}</td>
+                        <td>
+                            <a class="btn btn-success"  type="button" v-on:click="pcedit(pc.id)" data-toggle="modal" data-target="#editPc">编辑</a>
+                            <a class="btn btn-danger" type="button" v-on:click="pcdel(pc.id,pc.user)" data-toggle="modal" data-target="#myModal">删除</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <!--删除模态框开始，确认是否删除-->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                                </button>
+                                <h4 class="modal-title" id="myModalLabel">请确定是否要删除<span style="color:seagreen;font-weight:bold;">{{ pc_del_user }}</span>的PC</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-lg-4"></div>
+                                    <div class="col-lg-4">
+                                        <button type="button" class="btn btn-warning" v-on:click="pcdel_save(pc_del_id)"
+                                                data-dismiss="modal">确 认
+                                        </button>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
+                                    </div>
+                                    <div class="col-lg-4"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+                <!--删除模态框结束-->
+
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        <li v-if="pc_current == 1" class="disabled">
+                            <a aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li v-if="pc_current > 1">
+                            <a v-on:click="getpage(pc_current-1)" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        <li v-for="page in pc_range" v-bind:class="{ 'active': page == pc_current }">
+                            <a herf="#" v-on:click="getpage(page)">{{ page }}</a>
+                        </li>
+
+
+                        <li v-if="pc_current == pc_maxpage" class="disabled">
+                            <a aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li v-if="pc_current < pc_maxpage">
+                            <a v-on:click="getpage(pc_current+1)" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+    </div>
+    {% endverbatim myblock %}
+    </div>
+{% endblock %}
