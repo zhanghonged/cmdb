@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^pc_add/$', pc_add, name='pc_add'),
     url(r'^pc_list_data/$', pc_list_data, name='pc_list_data'),
     url(r'^pc_edit/$', pc_edit, name='pc_edit'),
-    url(r'pc_del/$', pc_del, name='pc_del'),
+    url(r'^pc_del/$', pc_del, name='pc_del'),
+    url(r'^export_pc/$', export_pc, name='export_pc'),
     url('^aaa',linshi)
 ]

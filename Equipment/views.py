@@ -1,11 +1,12 @@
 #coding:utf-8
 import time
 import paramiko
+from django.http import StreamingHttpResponse
 from django.shortcuts import render,redirect
 from User.models import CMDBUser
 from django.http import JsonResponse
 from models import Equipment,Pc
-from cmdb.views import getpage
+from cmdb.views import getpage, to_excel
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
@@ -365,6 +366,41 @@ def get_auth_obj(request):
     authobj['signature'] = create_signature(secret,authobj['api_key'],authobj['upn'],authobj['timestamp'])
     auth_info_and_server = {'url':gateone_server,'auth':authobj}
     return JsonResponse(auth_info_and_server)
+
+
+def file_iterator(filename, chunk_size=512):
+    '''
+    读取文件迭代器
+    :param filename:
+    :param chunk_size:
+    :return:
+    '''
+    with open(filename, 'rb') as f:
+        while True:
+            c = f.read(chunk_size)
+            if c:
+                yield c
+            else:
+                break
+
+def export_pc(request):
+    '''
+    导出excel报表功能
+    :param request:
+    :return:
+    '''
+    temp_file = 'PC%s.xlsx'%time.strftime('%Y%m%d',time.localtime())
+    sql = 'select * from Equipment_pc'
+    result = to_excel(sql,temp_file)
+    # Excel文件导出成功，开始下载文件
+    if result['status'] == 'success':
+        the_file_name = temp_file
+        response = StreamingHttpResponse(file_iterator(the_file_name))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format(the_file_name)
+        return response
+    else:
+        return JsonResponse(result)
 
 def get_mac():
     import random

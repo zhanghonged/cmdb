@@ -1,5 +1,7 @@
 #coding:utf-8
+import os
 import random
+import xlsxwriter
 from django.shortcuts import render, redirect
 from django.db import connection
 
@@ -92,3 +94,64 @@ def loginValid(fun):
         else:
             return redirect('login')
     return inner
+
+def to_excel(sql,name):
+    '''
+    导出excel报表
+    :param sql:
+    :param name:
+    :return:
+    '''
+    result = {'status':'error','data':''}
+    # 实例化游标,执行sql获取数据
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    data = cursor.fetchall()
+
+    #取出表的字段值
+    desc = cursor.description
+    title = [t[0] for t in desc]
+
+    #写入excel
+    workbook = xlsxwriter.Workbook(name)
+    worksheet = workbook.add_worksheet()
+
+    format = workbook.add_format()
+    format.set_border(1)
+
+    format_title = workbook.add_format()
+    format_title.set_border(1)
+    format_title.set_bg_color('#cccccc')
+    format_title.set_align('center')
+    format_title.set_bold()
+
+    # 如果文件存在则删除
+    exist_file = os.path.exists(name)
+    if exist_file:
+        os.remove(name)
+
+    try:
+        #导出excel标题，排除id字段
+        col_title = 0
+        for unit in title:
+            if unit != 'id':
+                worksheet.write(0,col_title,unit,format_title)
+                col_title += 1
+
+        # 导出excel内容
+        #从第一行开始,排除列表第一个数据，id
+        row = 1
+        for onerow in data:
+            # 从第一列开始
+            col = 0
+            for index,item in enumerate(onerow):
+                if index != 0:
+                    worksheet.write(row,col,item,format)
+                    col += 1
+            row += 1
+    except Exception as e:
+        result['data'] = str(e)
+    else:
+        workbook.close()
+        result['status'] = 'success'
+    return result
