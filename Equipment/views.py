@@ -194,7 +194,7 @@ def pc_list_data(request):
                   " or Equipment_pc.department LIKE" + " '%" + keyword + "%'"
                   " or Equipment_pc.note LIKE" + " '%" + keyword + "%'"
             )
-            print sql
+            #print sql
         else:
             sql = 'select * from Equipment_pc'
         if page and num:
@@ -389,18 +389,32 @@ def export_pc(request):
     :param request:
     :return:
     '''
-    temp_file = 'PC%s.xlsx'%time.strftime('%Y%m%d',time.localtime())
-    sql = 'select * from Equipment_pc'
-    result = to_excel(sql,temp_file)
-    # Excel文件导出成功，开始下载文件
-    if result['status'] == 'success':
-        the_file_name = temp_file
-        response = StreamingHttpResponse(file_iterator(the_file_name))
-        response['Content-Type'] = 'application/octet-stream'
-        response['Content-Disposition'] = 'attachment;filename="{0}"'.format(the_file_name)
-        return response
-    else:
-        return JsonResponse(result)
+    if request.method == 'GET':
+        keyword = request.GET.get('search')
+        temp_file = 'PC%s.xlsx'%time.strftime('%Y%m%d',time.localtime())
+        #sql = 'select * from Equipment_pc'
+        sql = (
+            "select * from Equipment_pc"
+            " where Equipment_pc.user LIKE" + " '%" + keyword + "%'"
+            " or Equipment_pc.ip LIKE " + " '%" + keyword + "%'"
+            " or Equipment_pc.mac LIKE" + " '%" + keyword + "%'"
+            " or Equipment_pc.cpu LIKE" + " '%" + keyword + "%'"
+            " or Equipment_pc.memory LIKE" + " '%" + keyword + "%'"
+            " or Equipment_pc.disk LIKE" + " '%" + keyword + "%'"
+            " or Equipment_pc.display LIKE" + " '%" + keyword + "%'"
+            " or Equipment_pc.department LIKE" + " '%" + keyword + "%'"
+            " or Equipment_pc.note LIKE" + " '%" + keyword + "%'"
+        )
+        result = to_excel(sql,temp_file)
+        # Excel文件导出成功，开始下载文件
+        if result['status'] == 'success':
+            the_file_name = temp_file
+            response = StreamingHttpResponse(file_iterator(the_file_name))
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename="{0}"'.format(the_file_name)
+            return response
+        else:
+            return JsonResponse(result)
 
 def get_mac():
     import random

@@ -142,10 +142,13 @@
                         //搜索按钮
                         pcsearch:function () {
                             var keyword = this.pc_search;
-                            console.log(keyword);
+                            //console.log(keyword);
                             var page = 1;
                             this.getpage(page,keyword);
-
+                        },
+                        pcexport:function () {
+                            var url = '/eq/export_pc/?search=' + this.pc_search;
+                            window.open(url);
                         }
                     }
                 }
@@ -180,7 +183,7 @@
                         </span>
                     </div>
                     <div class="input-group">
-                        <a type="button" class="btn btn-outline btn-info" href="/eq/export_pc/">报表导出</a>
+                        <a type="button" class="btn btn-outline btn-info" v-on:click="pcexport()">报表导出</a>
 
                     </div>
             </div>
