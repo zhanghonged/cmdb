@@ -1,8 +1,10 @@
 #coding:utf-8
+import json
 import time
 import paramiko
+import hmac ,hashlib
 from django.http import StreamingHttpResponse
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,HttpResponse
 from User.models import CMDBUser
 from django.http import JsonResponse
 from models import Equipment,Pc
@@ -343,25 +345,41 @@ def pc_del(request):
             result['data'] = '设备ID不存在'
     return JsonResponse(result)
 
-def gateone(request):
-    return render(request,'gateone.html')
+def gateone(request,id):
+    id = int(id)
+    server = Equipment.objects.get(id = id)
+    ip = server.ip
+    port = server.port
+    username = server.username
+    return render(request,'gateone.html',locals())
 
 def create_signature(secret,*parts):
-    import hmac ,hashlib
+    '''
+    此方法主要用来加密
+    :param secret:
+    :param parts:
+    :return:
+    '''
     hash = hmac.new(secret, digestmod=hashlib.sha1)
     for part in parts:
         hash.update(str(part))
     return hash.hexdigest()
 
 def get_auth_obj(request):
-    gateone_server = 'http://192.168.1.5:8811'
-    secret = 'secret'
+    '''
+    gateone继承到web界面上
+    :param request:
+    :return:返回gateone url及认证参数
+    '''
+    gateone_server = 'https://192.168.1.145:443'
+    secret = 'NjVjMTNkMWJjZWUyNDdiOGFkN2E3ZDBjZmZlY2E5ZWViM'
+    api_key = 'YzgxOWYyOThhNjY3NDU3Mzk5MTZkZWFmYTlkMzRhZDE1N'
     authobj = {
-        'api_key':'YjQ3NjMyZjEyZTRjNDE5YzkwNWFlMGZiZDYwODI0YjUyY',
-        'upn':'zhanghong',
+        'api_key':api_key,
+        'upn':'gateone',
         'timestamp':str(int(time.time() * 1000)),
         'signature_method':'HMAC-SHA1',
-        'api_version':'1,0'
+        'api_version':'1.0'
     }
     authobj['signature'] = create_signature(secret,authobj['api_key'],authobj['upn'],authobj['timestamp'])
     auth_info_and_server = {'url':gateone_server,'auth':authobj}

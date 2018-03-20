@@ -82,6 +82,11 @@
                                 console.log(response);
                             }//请求失败
                         )
+                    },
+                    connect:function (id) {
+                        var url = '/eq/gateone/' + id + '/';
+                        //console.log(url);
+                        window.open(url,"_self");
                     }
                 }//用来定义被绑定的方法
             }
@@ -188,11 +193,7 @@
                         <td>{{ server.disk }}</td>
                         <td>{{ server.mac }}</td>
                         <td>
-                            <button class="btn btn-success btn-group-justified">
-                                <a href="/eq/gateone">
-                                    远程命令
-                                </a>
-                            </button>
+                            <a class="btn btn-primary btn-sm"  type="button" v-on:click="connect(server.id)">连接</a>
                         </td>
                     </tr>
                     </tbody>

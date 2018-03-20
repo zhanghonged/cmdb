@@ -1,18 +1,18 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load staticfiles %}
-
 {% block title %}
-    Gateone
+    cmdb_terminal_v1
 {% endblock %}
 
 {% block style %}
-    <script src="{% static 'jquery/jquery-1.10.1.js' %}"></script>
-    <script src="{% static 'gateone/gateone.js' %}"></script>
-    <script>
+    <script src = "{% static 'jquery/jquery-2.1.1.js' %}"></script>
+    <script src = "{% static 'gateone/gateone.js' %}"></script>
+{#    <script src = "https://192.168.1.145/static/gateone.js"></script>#}
+        <script>
         $(function () {
-            var ip = '192.168.1.4';
-            var user = 'root';
-            var port = 22;
+            var ip = '{{ ip }}';
+            var user = '{{ username }}';
+            var port = '{{ port }}';
             var ssh_url = 'ssh://'+user+'@'+ip+':'+port;
             //请求认证信息
             $.ajax(
@@ -56,11 +56,13 @@
 {% endblock %}
 
 {% block label %}
-
+    CMDB Terminal_{{ ip }}
 {% endblock %}
 
 {% block content %}
-    <div id = "gateone_container" style = "position:relative; width: 110em; height: 50em;">
-        <div id = 'gateone'></div>
-    </div>
+        <div id = "gateone_container" style = "position:relative; width: 110em; height: 55em;">
+            <div id = "gateone">
+
+            </div>
+        </div>
 {% endblock %}
