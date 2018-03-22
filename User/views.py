@@ -5,15 +5,19 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from forms import Register, UserSetting
 from models import CMDBUser
+from Equipment.models import Equipment,Pc
 from cmdb.views import getpage ,loginValid
-from django.views.decorators.csrf import csrf_exempt
+
 
 # Create your views here.
 @loginValid
 def index(request):
     uid = request.COOKIES.get('id')
     user = CMDBUser.objects.get(id = uid)
-    return render(request,'index.html',{'user':user})
+    serverCount = len(Equipment.objects.all())
+    pcCount = len(Pc.objects.all())
+    userCount = len(CMDBUser.objects.all())
+    return render(request,'index.html',{'user':user,'serverCount':serverCount,'pcCount':pcCount,'userCount':userCount})
 
 @loginValid
 def user_list(request):
