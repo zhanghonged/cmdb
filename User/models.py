@@ -11,6 +11,8 @@ class CMDBUser(models.Model):
     def __unicode__(self):
         return self.username
 
+
+
 class Permission(models.Model):
     name = models.CharField(max_length=32,verbose_name='权限名称')
     obj_id = models.IntegerField(verbose_name='操作对象')
