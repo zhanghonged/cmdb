@@ -30,7 +30,6 @@ def user_list(request):
     register = Register
     return render(request,'userlist.html',locals())
 
-@loginValid
 def user_list_data(request):
     '''
     从数据库查询分页用户数据
@@ -61,7 +60,6 @@ def user_list_data(request):
         }
     return JsonResponse(result)
 
-@loginValid
 def userValid(request):
     '''
     验证用户名是否已经注册
@@ -88,7 +86,6 @@ def getmd5(password):
     md5.update(password)
     return md5.hexdigest()
 
-@loginValid
 def user_save(request):
     '''
     注册用户
@@ -117,7 +114,6 @@ def user_save(request):
             result['data'] = '注册失败'
     return JsonResponse(result)
 
-@loginValid
 def user_setting(request):
     '''
     用户个人设置
@@ -175,7 +171,6 @@ def user_setting(request):
         result['data'] = '请求方式错误'
     print result
     return JsonResponse(result)
-
 
 def login(request):
     '''

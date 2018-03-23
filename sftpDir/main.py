@@ -6,7 +6,7 @@ from sendData import Sender
 
 
 # url地址
-url = 'http://192.168.1.222:8001/eq/server_save'
+url = 'http://192.168.1.222:8000/eq/server_save'
 
 #采集数据
 mydata = GetData()
