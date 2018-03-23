@@ -8,11 +8,12 @@ from django.shortcuts import render,redirect,HttpResponse
 from User.models import CMDBUser
 from django.http import JsonResponse
 from models import Equipment,Pc
-from cmdb.views import getpage, to_excel
+from cmdb.views import getpage, to_excel, loginValid
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
+@loginValid
 def server_list(request):
     '''
     服务器列表展示
@@ -23,6 +24,7 @@ def server_list(request):
     user = CMDBUser.objects.get(id = uid)
     return render(request,'serverlist.html',locals())
 
+@loginValid
 def server_list_data(request):
     '''
     :param request:
@@ -52,6 +54,7 @@ def server_list_data(request):
         }
     return JsonResponse(result)
 
+@loginValid
 def connect_server(ip,port,user,password):
     '''
     通过paramiko检测服务器是否可以连通，是的话返回连接对象
@@ -73,6 +76,7 @@ def connect_server(ip,port,user,password):
     finally:
         return result
 
+@loginValid
 def server_add(request):
     '''
     服务器添加方法，根据ip、port、username、password对服务器操作：远程登录、脚本上传、脚本远程执行
@@ -168,9 +172,11 @@ def server_save(request):
         result['data'] = 'request must be post'
     return JsonResponse(result)
 
+@loginValid
 def pc_list(request):
     return render(request,'pclist.html',locals())
 
+@loginValid
 def pc_list_data(request):
     '''
     查询数据库数据以json格式返回
@@ -219,6 +225,7 @@ def pc_list_data(request):
         }
     return JsonResponse(result)
 
+@loginValid
 def pc_add(request):
     '''
     添加个人pc
@@ -264,6 +271,7 @@ def pc_add(request):
         result['data'] = '必须是POST请求'
     return JsonResponse(result)
 
+@loginValid
 def pc_edit(request):
     result = {'status':'error','data':{},'message':''}
     # 如果是get请求，返回当前pc的数据，用于vue前台默认展示
@@ -329,6 +337,7 @@ def pc_edit(request):
             result['message'] = '修改失败，请联系管理员'
     return JsonResponse(result)
 
+@loginValid
 def pc_del(request):
     result = {'status':'error','data':''}
     if request.method == 'GET':
@@ -345,6 +354,7 @@ def pc_del(request):
             result['data'] = '设备ID不存在'
     return JsonResponse(result)
 
+@loginValid
 def gateone(request,id):
     id = int(id)
     server = Equipment.objects.get(id = id)
@@ -365,6 +375,7 @@ def create_signature(secret,*parts):
         hash.update(str(part))
     return hash.hexdigest()
 
+@loginValid
 def get_auth_obj(request):
     '''
     gateone继承到web界面上
@@ -401,6 +412,7 @@ def file_iterator(filename, chunk_size=512):
             else:
                 break
 
+@loginValid
 def export_pc(request):
     '''
     导出excel报表功能

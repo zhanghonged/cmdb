@@ -21,6 +21,22 @@ def login(request):
     response.set_cookie('token',v_data)
     return response
 
+def loginValid(fun):
+    '''
+    cookie校验装饰器
+    :param request:
+    :return:
+    '''
+    def inner(request, *args, **kwargs):
+        isLogin = request.session.get('isLogin',False)
+        # 根据浏览器cookie里存储的sessionid在session表里查看登录状态
+        if isLogin:
+            return fun(request, *args, **kwargs)
+        else:
+            return redirect('login')
+    return inner
+
+@loginValid
 def logout(request):
     isLogin = request.session.get('isLogin',False)
     if isLogin:
@@ -79,21 +95,6 @@ def getpage(sql, page, num = 12, maxpage_num = 7):
         'max_page':page_total
     }
     return result
-
-def loginValid(fun):
-    '''
-    cookie校验装饰器
-    :param request:
-    :return:
-    '''
-    def inner(request, *args, **kwargs):
-        isLogin = request.session.get('isLogin',False)
-        # 根据浏览器cookie里存储的sessionid在session表里查看登录状态
-        if isLogin:
-            return fun(request, *args, **kwargs)
-        else:
-            return redirect('login')
-    return inner
 
 def to_excel(sql,name):
     '''
