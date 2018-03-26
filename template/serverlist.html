@@ -24,7 +24,21 @@
             data: dict,
             success: function (data) {
                 console.log(data);
-                $(location).attr('href', '{% url 'server_list' %}');
+                if(data.status == 'success'){
+                    UIkit.notify({
+                       message:data.data,
+                       status:'info'
+                    });
+                    setTimeout(function () {
+                        $(location).attr('href', '{% url 'server_list' %}');
+                    },1000);
+                }else{
+                 UIkit.notify({
+                       message:data.data,
+                       status:'danger'
+                    });
+                }
+
             },
             error: function (error) {
                 console.log(error);

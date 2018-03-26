@@ -70,7 +70,6 @@
                         },
                         //vue ajax get 请求 ,用于从后台获取当前pc的值
                         pcedit:function (id) {
-                            //如果id存在，则为修改数据，
                             var url = '/eq/pc_edit/?pid=' + id;
                             this.$http.get(url).then(
                                 //请求成功
@@ -91,14 +90,26 @@
                             //id存在，则为修改
                             if(id){
                                 data['pid'] = id;
-                                //console.log(data);
-                                //console.log('修改信息');
                                 var url = '/eq/pc_edit/';
                                 this.$http.post(url,data).then(
                                     //请求成功
                                     function (data) {
-                                        console.log(data);
-                                        $(location).attr('href', '{% url 'pc_list' %}');
+                                        //console.log(data);
+                                        if(data.data.status == 'success'){
+                                            UIkit.notify({
+                                                message:data.data.message,
+                                                status:'info'
+                                            });
+                                            setTimeout(function () {
+                                                $(location).attr('href', '{% url 'pc_list' %}');
+                                            },1000);
+                                        }else{
+                                            UIkit.notify({
+                                               message:data.data.message,
+                                               status:'danger'
+                                            });
+                                        }
+                                        //$(location).attr('href', '{% url 'pc_list' %}');
                                     },
                                     //请求失败
                                     function (response) {
@@ -109,8 +120,24 @@
                                 var addurl = '/eq/pc_add/';
                                 this.$http.post(addurl,data).then(
                                     function (data) {
-                                        console.log(data);
-                                        $(location).attr('href', '{% url 'pc_list' %}');
+                                        //console.log(data);
+                                        if(data.data.status == 'success'){
+                                            UIkit.notify({
+                                            message:data.data.data,
+                                            status:'info'
+                                            });
+                                            //延迟1秒用于显示通知，然后刷新页面
+                                            setTimeout(function () {
+                                                $(location).attr('href', '{% url 'pc_list' %}');
+                                            },1000);
+                                        }else{
+                                            UIkit.notify({
+                                            message:data.data.data,
+                                            status:'danger'
+                                        });
+                                        }
+
+                                        //$(location).attr('href', '{% url 'pc_list' %}');
                                     },
                                     function (response) {
                                         console.log(response)
@@ -131,7 +158,21 @@
                                 //请求成功
                                 function (data) {
                                     console.log(data);
-                                    $(location).attr('href', '{% url 'pc_list' %}');
+                                    if(data.data.status == 'success'){
+                                        UIkit.notify({
+                                            message:data.data.data,
+                                            status:'info'
+                                        });
+                                        setTimeout(function () {
+                                            $(location).attr('href', '{% url 'pc_list' %}');
+                                        },1000)
+                                    }else{
+                                        UIkit.notify({
+                                            message:data.data.data,
+                                            status:'danger'
+                                        });
+                                    }
+                                    //$(location).attr('href', '{% url 'pc_list' %}');
                                 },
                                 //请求失败
                                 function (response) {

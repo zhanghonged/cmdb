@@ -1,0 +1,5 @@
+Django==1.8.2
+MySQL-python==1.2.5
+paramiko==2.3.1
+XlsxWriter==1.0.2
+Pillow==4.2.1

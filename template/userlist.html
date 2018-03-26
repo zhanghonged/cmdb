@@ -15,7 +15,7 @@
                 dict[this.name] = this.value
             });
             dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
-            console.log(dict);
+            //console.log(dict);
             $.ajax(
                 {
                     url: '/user/user_save',
@@ -24,21 +24,23 @@
                    // processData: false, // 告诉jQuery不要去处理发送的数据
                    // contentType: false, // 告诉jQuery不要去设置Content-Type请求头
                     success: function (data) {
-                        console.log(data);
+                        //console.log(data);
                         if (data.status == 'success') {
-                            $('.top-right').notify({
-                                message: {text: data.data},
-                                type: "success"
-                            }).show();
+                            UIkit.notify({
+                                message:data.data,
+                                status:'info'
+                            });
                             //清空表单值
                             $('#id_username').val('');
                             $('#id_password').val('');
-                            $(location).attr('href', '{% url 'user_list' %}');
+                            setTimeout(function () {
+                                $(location).attr('href', '{% url 'user_list' %}');
+                            },1000);
                         } else {
-                            $('.top-right').notify({
-                                message: {text: data.data},
-                                type: "danger"
-                            }).show();
+                            UIkit.notify({
+                                message:data.data,
+                                status:'info'
+                            });
                         }
                     },
                     error: function (error) {
@@ -187,11 +189,6 @@
 {% endblock %}
 
 {% block content %}
-    <div class='notifications top-right'></div>
-    <div class='notifications bottom-right'></div>
-    <div class='notifications top-left'></div>
-    <div class='notifications bottom-left'></div>
-
     <div class="row">
         <!--模态框开始-->
         <div class="col-lg-11">

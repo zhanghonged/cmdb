@@ -118,6 +118,8 @@ def server_add(request):
                 equipment = Equipment.objects.get(ip=ip)
                 equipment.status = 'True'
                 equipment.save()
+                result['status'] = 'success'
+                result['data'] = '添加成功'
             else:
                 result['data'] = connect['data']
                 # 连接失败状态记录到数据库
@@ -125,9 +127,9 @@ def server_add(request):
                 equipment.status = 'False'
                 equipment.save()
         else:
-            result['data'] = 'ip and port and username and password not be null'
+            result['data'] = '添加失败，ip port username password不能为空'
     else:
-        result['data'] = 'your request must be post'
+        result['data'] = '添加失败，请求类型必须为POST类型'
     return JsonResponse(result)
 
 # 由于客户端调用此接口，去掉csff验证
@@ -288,7 +290,6 @@ def pc_edit(request):
                 result['data']['department'] = pc.department
                 result['data']['note'] = pc.note
                 result['status'] = 'success'
-            #return JsonResponse(result)
         else:
             result['message'] = 'error'
     # 如果是post请求，则为修改数据
@@ -313,7 +314,7 @@ def pc_edit(request):
                 pc_list = Pc.objects.filter(ip = ip).exclude(id=pid)
                 # 如果pc_list长度大于0，说明此ip已存在
                 if len(pc_list) > 0:
-                    result['message'] = 'IP已存在，请确认'
+                    result['message'] = '修改失败，IP已存在，请确认'
                 else:
                     pc.user=user
                     pc.ip=ip

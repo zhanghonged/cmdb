@@ -30,8 +30,9 @@
     <!-- bootstrapValidator CSS -->
     <link rel="stylesheet" href="{% static 'bootstrapvalidator/css/bootstrapValidator.min.css' %}">
 
-    <!-- bootstrap-notify CSS -->
-    <link rel="stylesheet" href="{% static 'bootstrap-notify/css/bootstrap-notify.css' %}">
+    <!-- uilit CSS -->
+    <link rel="stylesheet" href="{% static 'uikit-2.25.0/css/uikit.min.css' %}">
+    <link rel="stylesheet" href="{% static 'uikit-2.25.0/css/notify.min.css' %}">
 
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -144,10 +145,6 @@
                 <!-- /.row -->
             </div>
             {% block content %}
-                    <div class='notifications top-right'></div>
-                    <div class='notifications bottom-right'></div>
-                    <div class='notifications top-left'></div>
-                    <div class='notifications bottom-left'></div>
             {% endblock %}
             <!-- /.container-fluid -->
         </div>
@@ -203,12 +200,14 @@
     <!-- Custom bootstrapValidator JavaScript -->
     <script src="{% static 'bootstrapvalidator/js/bootstrapValidator.min.js' %}"></script>
 
-    <!-- bootstrap-notify JavaScript -->
-    <script src="{% static 'bootstrap-notify/js/bootstrap-notify.js' %}"></script>
-
     <!-- vue JavaScript -->
     <script src="{% static 'vue/vue.min.js' %}"></script>
     <script src="{% static 'vue/vue-resource.js' %}"></script>
+
+    <!-- uilit JavaScript -->
+    <script src="{% static 'uikit-2.25.0/js/uikit.min.js' %}"></script>
+    <script src="{% static 'uikit-2.25.0/js/notify.min.js' %}"></script>
+
     <script>
         function usersetting() {
             var sendData = new FormData();
@@ -224,22 +223,22 @@
                 processData:false,  //告诉jQuery不要去处理发送的数据
                 contentType:false,  //告诉jQuery不要去处理Content-Type请求头
                 success:function (data) {
-                    console.log(data);
+                    //console.log(data);
                     if (data.status == 'success') {
-                        $('.top-right').notify({
-                            message: {text: data.data},
-                            type: "success"
-                        }).show();
+                        UIkit.notify({
+                            message:data.data,
+                            status:'success'
+                        });
                         //清空表单值
                         $('#id_phone').val('');
                         $('#id_mail').val('');
                         $('#id_photo').val('');
                     }
                     else{
-                        $('.top-right').notify({
-                            message: {text: data.data},
-                            type: "danger"
-                        }).show();
+                        UIkit.notify({
+                           message:data.data,
+                           status:'danger'
+                        });
                     }
                     //$(location).attr('href', '{% url 'index' %}');
                 },
