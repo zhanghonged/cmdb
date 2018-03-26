@@ -139,7 +139,8 @@
                         user_data: '',
                         user_range: '',
                         user_current: '',
-                        user_maxpage: ''
+                        user_maxpage: '',
+                        user_page_num:''
                     },//绑定的数据,定义数据模型
                     created: function () {
                         //var url = '/user/user_list_data/?page=1';
@@ -152,6 +153,7 @@
                                 this.user_range = Data.page_range;
                                 this.user_current = Data.current_page;
                                 this.user_maxpage = Data.max_page;
+                                this.user_page_num = Data.page_num;
                             },//请求成功
                             function (response) {
                                 console.log(response);
@@ -170,6 +172,7 @@
                                     this.user_range = Data.page_range;
                                     this.user_current = Data.current_page;
                                     this.user_maxpage = Data.max_page;
+                                    this.user_page_num = Data.page_num;
                                 },//请求成功
                                 function (response) {
                                     console.log(response);
@@ -243,7 +246,7 @@
                     </thead>
                     <tbody>
                     <tr class="odd gradeX" v-for='(user,index) in user_data'>
-                        <td v-text="index + 1"></td>
+                        <td v-text="(user_current - 1)*user_page_num + index + 1"></td>
                         <td v-text="user.username"></td>
                         <td v-text="user.phone"></td>
                         <td v-text="user.email"></td>

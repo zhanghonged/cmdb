@@ -42,14 +42,16 @@ def server_list_data(request):
                 'page_data': '',
                 'page_range': '',
                 'current_page': '',
-                'max_page': ''
+                'max_page': '',
+                'page_num':''
             }
     else:
         result = {
             'page_data': '',
             'page_range': '',
             'current_page': '',
-            'max_page': ''
+            'max_page': '',
+            'page_num':''
         }
     return JsonResponse(result)
 
@@ -212,14 +214,16 @@ def pc_list_data(request):
                 'page_data': '',
                 'page_range': '',
                 'current_page': '',
-                'max_page': ''
+                'max_page': '',
+                'page_num':''
             }
     else:
         result = {
             'page_data': '',
             'page_range': '',
             'current_page': '',
-            'max_page': ''
+            'max_page': '',
+            'page_num': ''
         }
     return JsonResponse(result)
 

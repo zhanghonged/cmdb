@@ -43,7 +43,7 @@ def logout(request):
         request.session.flush()
     return redirect('login')
 
-def getpage(sql, page, num = 12, maxpage_num = 7):
+def getpage(sql, page, num = 10, maxpage_num = 7):
     '''
     查询数据库数据
     :param sql: 每次查询的语句
@@ -92,7 +92,8 @@ def getpage(sql, page, num = 12, maxpage_num = 7):
         'page_data':data_list,
         'page_range':page_range,
         'current_page':page,
-        'max_page':page_total
+        'max_page':page_total,
+        'page_num':num
     }
     return result
 

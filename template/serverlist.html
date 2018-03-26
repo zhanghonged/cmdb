@@ -61,7 +61,8 @@
                     server_data: '',
                     server_range: '',
                     server_current:null,
-                    server_maxpage:null
+                    server_maxpage:null,
+                    server_page_num:''
                 },//绑定的数据,定义数据模型
                 created: function () {
                     var url = '/eq/server_list_data/?page=1';
@@ -73,6 +74,7 @@
                             this.server_range = Data.page_range;
                             this.server_current = Data.current_page;
                             this.server_maxpage = Data.max_page;
+                            this.server_page_num = Data.page_num;
                             //console.log(this.server_maxpage);
                         },//请求成功
                         function (response) {
@@ -196,7 +198,7 @@
                     </thead>
                     <tbody>
                     <tr class="odd gradeX" v-for='(server,index) in server_data'>
-                        <td>{{ index+1 }}</td>
+                        <td>{{ (server_current - 1)*server_page_num + index+1 }}</td>
                         <td>{{ server.ip }}</td>
                         <td>{{ server.hostname }}</td>
                         <td>{{ server.status }}</td>
