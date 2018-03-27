@@ -230,21 +230,51 @@ def group_list(request):
 def group_add(request):
     return render(request,'usergroups_add.html',locals())
 
+def group_list_data(request):
+    if request.method == 'GET':
+        page = request.GET.get('page')
+        num = request.GET.get('num')
+        sql = 'select * from User_cmdbgroup'
+        if page and num:
+            result = getpage(sql,page,num)
+        elif page:
+            result = getpage(sql,page)
+        else:
+            result = {
+                'page_data': '',
+                'page_range': '',
+                'current_page': '',
+                'max_page': '',
+                'page_num':''
+            }
+    else:
+        result = {
+            'page_data': '',
+            'page_range': '',
+            'current_page': '',
+            'max_page': '',
+            'page_num': ''
+        }
+    return JsonResponse(result)
+
 def group_detail(request):
     result = {'status':'error','data':''}
     if request.method == 'POST':
-        name = request.POST.get('group_name')
-        description = request.POST.get('group_description')
+        name = request.POST.get('name')
+        description = request.POST.get('description')
         if name:
             try:
                 group = CMDBGroup.objects.get(name=name)
             except:
                 CMDBGroup.objects.create(name=name,description=description)
                 result['status'] = 'success'
+                result['data'] = '新建组成功'
             else:
                 result['data'] = '新建组失败，组名已存在'
         else:
             result['data'] = '新建组失败，无法获取组名'
     else:
         result['data'] = '新建组失败,必须为POST请求方式'
+
+    print result
     return JsonResponse(result)

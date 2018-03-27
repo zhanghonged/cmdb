@@ -9,43 +9,51 @@
     <script src="{% static 'jquery/jquery-2.1.1.js' %}"></script>
     <script src="{% static 'multiselect/js/multiselect.min.js' %}"></script>
     <script>
-
-        $(function () {
-
-
+        function group() {
+            //使用VueResource插件
+            //使用VueResource来进行ajax请求，Vue本身不支持ajax请求
             Vue.use(VueResource);
+            // 设置 POST 请求时 的 data 格式
             Vue.http.options.emulateJSON = true;
+
             new Vue(
                     {
                         el:'#groupAdd',
                         data:{
-                            group_name:'',
-                            group_description:''
+                            group:{}
                         },
                         methods:{
                             group_add:function () {
-                                var data = {};
-                                data['group_name'] = this.group_name;
-                                data['group_description'] = this.group_description;
-                                data['csrfmiddlewaretoken'] = '{{ csrf_token }}';
-                                console.log(data);
-                                var url = '/user/group_detail/';
-                                this.$http.post(url,data).then(
-                                    function (data) {
-                                        console.log(data);
+                            var data = this.group;
+                            data['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                            var url = '/user/group_detail/';
+                            this.$http.post(url,data).then(
+                                function (data) {
+                                    console.log(data);
+                                    if(data.data.status == 'success'){
                                         UIkit.notify({
-                                            message:data.data,
+                                            message:data.data.data,
                                             status:'info'
-                                        });
-                                    },
-                                    function (response) {
-                                        console.log(response);
+                                        })
+                                    }else{
+                                        UIkit.notify({
+                                            message:data.data.data,
+                                            status:'danger'
+                                        })
                                     }
-                                )
+                                },function (response) {
+                                    console.log(response);
+                                }
+                            )
                             }
                         }
                     }
                 )
+        }
+        jQuery(document).ready(function ($) {
+
+            $('#multiselect').multiselect();
+            group();
     });
     </script>
 {% endblock %}
@@ -57,24 +65,64 @@
 {% block content %}
     {% verbatim myblock %}
     <div id="groupAdd">
-            <form enctype="multipart/form-data">
-                    <fieldset>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="control-label">组名:</label>
-                                <input id="group_name" name="group_name" type="text" v-model="group_name">
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label">描述:</label>
-                                <input id="group_description" name="group_description" type="text" v-model="group_description">
+        <fieldset>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="control-label">组名:</label>
+                    <input type="text" v-model="group.name">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">描述:</label>
+                    <input type="text" v-model="group.description">
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label for="id_permissions">权限:</label>
+                        <div class="related-widget-wrapper">
+                            <div class="selector">
+                                <!--权限左右选择框开始-->
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <select name="from" id="multiselect" class="form-control" size="8"
+                                                multiple="multiple">
+                                            <option value="1">Item 1</option>
+                                            <option value="2">Item 5</option>
+                                            <option value="2">Item 2</option>
+                                            <option value="2">Item 4</option>
+                                            <option value="3">Item 3</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-1">
+                                        <button type="button" id="multiselect_rightAll" class="btn btn-block"><i
+                                                class="glyphicon glyphicon-forward"></i></button>
+                                        <button type="button" id="multiselect_rightSelected"
+                                                class="btn btn-block"><i
+                                                class="glyphicon glyphicon-chevron-right"></i></button>
+                                        <button type="button" id="multiselect_leftSelected"
+                                                class="btn btn-block"><i
+                                                class="glyphicon glyphicon-chevron-left"></i></button>
+                                        <button type="button" id="multiselect_leftAll" class="btn btn-block"><i
+                                                class="glyphicon glyphicon-backward"></i></button>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <select name="to" id="multiselect_to" class="form-control" size="8"
+                                                multiple="multiple"></select>
+                                    </div>
+                                </div>
+                                <!--权限左右选择框结束-->
                             </div>
                         </div>
+                    </div>
+                    </div>
+                </div>
 
-                    </fieldset>
-                    <fieldset>
-                        <button class="btn btn-lg btn-primary" v-on:click="group_add()">提交</button>
-                    </fieldset>
-            </form>
+        </fieldset>
+        <fieldset>
+            <button class="btn btn-lg btn-primary" v-on:click="group_add()">提交</button>
+        </fieldset>
     </div>
     {% endverbatim myblock %}
 {% endblock %}

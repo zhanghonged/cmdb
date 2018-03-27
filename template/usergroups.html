@@ -6,6 +6,39 @@
 
 {% block style %}
     <script src="{% static 'jquery/jquery-2.1.1.js' %}"></script>
+    <script src="{% static 'vue/vue.min.js' %}"></script>
+    <script src="{% static 'vue/vue-resource.js' %}"></script>
+
+    <script>
+      $(function(){
+        //使用VueResource插件
+        //使用VueResource来进行ajax请求，Vue本身不支持ajax请求
+        Vue.use(VueResource);
+        // 设置 POST 请求时 的 data 格式
+        Vue.http.options.emulateJSON = true;
+        new Vue(
+            {
+            el:'#mygroup',
+            data:{
+                group_data:''
+            },
+              created:function () {
+                    var url = '/user/group_list_data/?page=1';
+                    this.$http.get(url).then(
+                        function (data) {
+                            console.log(data);
+                            this.group_data = data.data.page_data;
+                            console.log(this.group_data);
+                        },
+                        function (response) {
+                            console.log(response);
+                        }
+                    )
+                }
+            }
+        )
+      })
+    </script>
 {% endblock %}
 
 {% block label %}
@@ -13,61 +46,30 @@
 {% endblock %}
 
 {% block content %}
-
-    {% verbatim myblock %}
-            <div class="col-lg-12" id="myuser">
+    <div id="mygroup">
+    {% verbatim myblock1 %}
+        <div class="col-lg-12">
                 <a href="/user/group_add/" type="button" class="btn btn-labeled btn-success">
                     <span class="btn-label"><i class="fa fa-plus"></i></span>
                     新增组
                 </a>
                 <br>
-                <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
+                <table width="100%" class="table table-striped table-bordered table-hover">
                     <thead>
                     <tr>
                         <th>组名</th>
                         <th>描述</th>
-                        <th>编辑</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr class="odd gradeX" v-for='(user,index) in user_data'>
-                        <td v-text="user.username"></td>
-                        <td v-text="user.phone"></td>
-                        <td v-text="user.email"></td>
+                    <tr class="odd gradeX" v-for='g in group_data'>
+                        <td>{{ g.name }}</td>
+                        <td v-text="g.name"></td>
                     </tr>
                     </tbody>
                 </table>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        <li v-if="user_current == 1" class="disabled">
-                            <a aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                        <li v-if="user_current > 1">
-                            <a v-on:click="getpage(user_current-1)" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-
-                        <li v-for="page in user_range" v-bind:class="{ 'active': page == user_current }">
-                            <a herf="#" v-on:click="getpage(page)"><span v-text="page"></span></a>
-                        </li>
-
-
-                        <li v-if="user_current == user_maxpage" class="disabled">
-                            <a aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                        <li v-if="user_current < user_maxpage">
-                            <a v-on:click="getpage(user_current+1)" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
             </div>
+    {% endverbatim myblock1 %}
+    </div>
 
-        {% endverbatim myblock %}
 {% endblock %}

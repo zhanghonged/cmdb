@@ -10,5 +10,6 @@ urlpatterns = [
     url(r'login/$',login, name='loginAuth'),
     url(r'^group_list/$', group_list, name='group_list'),
     url(r'group_add/$', group_add, name='group_add'),
-    url(r'^group_detail/$', group_detail, name='group_detail')
+    url(r'^group_detail/$', group_detail, name='group_detail'),
+    url(r'^group_list_data/$', group_list_data, name='group_list_data')
 ]
