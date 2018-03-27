@@ -4,7 +4,7 @@ from PIL import Image
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from forms import Register, UserSetting
-from models import CMDBUser
+from models import CMDBUser,CMDBGroup
 from Equipment.models import Equipment,Pc
 from cmdb.views import getpage ,loginValid
 
@@ -214,3 +214,37 @@ def login(request):
         else:
             return redirect('login')
     return redirect('login')
+
+def group_list(request):
+    '''
+    用户组管理页
+    :param request:
+    :return:
+    '''
+    uid = request.COOKIES.get('id')
+    user = CMDBUser.objects.get(id=uid)
+    register = Register
+    return render(request,'usergroups.html',locals())
+
+
+def group_add(request):
+    return render(request,'usergroups_add.html',locals())
+
+def group_detail(request):
+    result = {'status':'error','data':''}
+    if request.method == 'POST':
+        name = request.POST.get('group_name')
+        description = request.POST.get('group_description')
+        if name:
+            try:
+                group = CMDBGroup.objects.get(name=name)
+            except:
+                CMDBGroup.objects.create(name=name,description=description)
+                result['status'] = 'success'
+            else:
+                result['data'] = '新建组失败，组名已存在'
+        else:
+            result['data'] = '新建组失败，无法获取组名'
+    else:
+        result['data'] = '新建组失败,必须为POST请求方式'
+    return JsonResponse(result)

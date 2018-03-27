@@ -8,4 +8,7 @@ urlpatterns = [
     url(r'^user_save', user_save, name='user_save'),
     url(r'user_setting', user_setting, name='user_setting'),
     url(r'login/$',login, name='loginAuth'),
+    url(r'^group_list/$', group_list, name='group_list'),
+    url(r'group_add/$', group_add, name='group_add'),
+    url(r'^group_detail/$', group_detail, name='group_detail')
 ]

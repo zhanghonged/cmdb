@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+    新增组
+{% endblock %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'multiselect/css/style.css' %}">
+    <script src="{% static 'jquery/jquery-2.1.1.js' %}"></script>
+    <script src="{% static 'multiselect/js/multiselect.min.js' %}"></script>
+    <script>
+
+        $(function () {
+
+
+            Vue.use(VueResource);
+            Vue.http.options.emulateJSON = true;
+            new Vue(
+                    {
+                        el:'#groupAdd',
+                        data:{
+                            group_name:'',
+                            group_description:''
+                        },
+                        methods:{
+                            group_add:function () {
+                                var data = {};
+                                data['group_name'] = this.group_name;
+                                data['group_description'] = this.group_description;
+                                data['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                                console.log(data);
+                                var url = '/user/group_detail/';
+                                this.$http.post(url,data).then(
+                                    function (data) {
+                                        console.log(data);
+                                        UIkit.notify({
+                                            message:data.data,
+                                            status:'info'
+                                        });
+                                    },
+                                    function (response) {
+                                        console.log(response);
+                                    }
+                                )
+                            }
+                        }
+                    }
+                )
+    });
+    </script>
+{% endblock %}
+
+{% block label %}
+    新增组
+{% endblock %}
+
+{% block content %}
+    {% verbatim myblock %}
+    <div id="groupAdd">
+            <form enctype="multipart/form-data">
+                    <fieldset>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="control-label">组名:</label>
+                                <input id="group_name" name="group_name" type="text" v-model="group_name">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">描述:</label>
+                                <input id="group_description" name="group_description" type="text" v-model="group_description">
+                            </div>
+                        </div>
+
+                    </fieldset>
+                    <fieldset>
+                        <button class="btn btn-lg btn-primary" v-on:click="group_add()">提交</button>
+                    </fieldset>
+            </form>
+    </div>
+    {% endverbatim myblock %}
+{% endblock %}

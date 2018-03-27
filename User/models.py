@@ -23,6 +23,7 @@ class Permission(models.Model):
 
 class CMDBGroup(models.Model):
     name = models.CharField(max_length=32,verbose_name='组名称')
+    description = models.TextField(verbose_name='组描述',blank=True,null=True)
 
     def __unicode__(self):
         return self.name

@@ -104,8 +104,16 @@
                         <li>
                             <a href="#" style="color:red;"><i class="fa fa-arrow-right fa-fw"></i>接口管理</a>
                         </li>
-                           <li>
-                            <a href="{% url 'user_list' %}"><i class="fa fa-user fa-fw"></i>用户管理</a>
+                       <li>
+                            <a href="#"><i class="fa fa-user fa-fw"></i>用户管理</a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="{% url 'user_list' %}">用户</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'group_list' %}">组</a>
+                                </li>
+                            </ul>
                         </li>
                         <li>
                             <a href="#" style="color:red;"><i class="fa fa-list-alt fa-fw"></i>日志管理<span class="fa arrow"></span></a>

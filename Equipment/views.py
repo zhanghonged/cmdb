@@ -380,10 +380,10 @@ def get_auth_obj(request):
     :return:返回gateone url及认证参数
     '''
     # 安装gateone的服务器以及端口.
-    gateone_server = 'https://192.168.1.152:443'
+    gateone_server = 'http://192.168.1.5:8889'
     # 之前生成的api_key 和secret
-    api_key = 'NGUzYzU2ZWRiYTM3NDUzMjk4OGI5MWQ4ZGNhNDUzMjBmN'
-    secret = 'NjNkNWRlZWI3OWVhNDY0YmIyYzU4ODA4MDQyYzgyNmJkM'
+    api_key = 'OTFhZmFiM2IzYmUxNDExYWJiN2IyMjNhNGE0MmY2N2VmY'
+    secret = 'NDJkNGM0N2UxOTNmNDJlYzgzYzQyYTdmZmZlYzk3YTYwN'
     authobj = {
         'api_key':api_key,
         'upn':'gateone',
