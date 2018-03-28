@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from forms import Register, UserSetting
 from models import CMDBUser,CMDBGroup
 from Equipment.models import Equipment,Pc
-from cmdb.views import getpage ,loginValid
+from cmdb.views import getpage ,loginValid, getdata
 
 
 # Create your views here.
@@ -61,6 +61,9 @@ def user_list_data(request):
             'max_page': '',
             'page_num':''
         }
+    group_sql = 'select * from User_cmdbgroup'
+    group_result = getdata(group_sql)
+    result['groupData'] = group_result
     return JsonResponse(result)
 
 def userValid(request):

@@ -93,7 +93,8 @@
                         user_edit:{},
                         user_del_username:'',
                         user_del_id:'',
-                        action:''
+                        action:'',
+                        group_data:''
                     },//绑定的数据,定义数据模型
                     created: function () {
                         //var url = '/user/user_list_data/?page=1';
@@ -107,6 +108,7 @@
                                 this.user_current = Data.current_page;
                                 this.user_maxpage = Data.max_page;
                                 this.user_page_num = Data.page_num;
+                                this.group_data = Data.groupData.groupData;
                             },//请求成功
                             function (response) {
                                 console.log(response);
@@ -275,7 +277,7 @@
                                                 <label class="control-label col-sm-2">用户组</label>
                                                 <div class="col-sm-10">
                                                     <select class="form-control" name="group" >
-                                                        <option>1</option>
+                                                        <option v-for="g in group_data">{{ g.name }}</option>
                                                     </select>
                                                 </div>
                                             </div>

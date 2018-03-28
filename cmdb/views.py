@@ -97,6 +97,19 @@ def getpage(sql, page, num = 10, maxpage_num = 7):
     }
     return result
 
+def getdata(sql):
+    cursor = connection.cursor() #实例化游标
+    cursor.execute(sql)
+    page_data = cursor.fetchall()
+    desc = cursor.description #取出表的字段值
+    # 把表地段和数据拼接为字典个数，存放到list里
+    data_list = [
+        dict(zip([d[0] for d in desc],row))
+        for row in page_data
+    ]
+    result ={'groupData':data_list}
+    return result
+
 def to_excel(sql,name):
     '''
     导出excel报表
