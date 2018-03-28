@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+    新增组
+{% endblock %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'multiselect/css/style.css' %}">
+    <script src="{% static 'jquery/jquery-2.1.1.js' %}"></script>
+    <script src="{% static 'multiselect/js/multiselect.min.js' %}"></script>
+    <script>
+        function groupadd() {
+            var dict = {};
+            dict['name'] = $('#name').val();
+            dict['description'] = $('#description').val();
+            dict['gid'] = '{{ group.id }}';
+            dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+
+            var gid = '{{ group.id }}';
+            var url = '';
+            if(gid){
+                url = '{% url 'group_edit' %}';
+            }else {
+                url = '{% url 'group_add' %}';
+            }
+            console.log(url);
+            console.log(dict);
+            $.ajax({
+                url:url,
+                type:'post',
+                data:dict,
+                success:function (data) {
+                    console.log(data);
+                    if(data.status == 'success'){
+                        UIkit.notify({
+                            message:data.data,
+                            status:'info'
+                        });
+                        $('#name').val('');
+                        $('#description').val('');
+                    }else{
+                        UIkit.notify({
+                            message:data.data,
+                            status:'danger'
+                        })
+                    }
+                },
+                error:function (response) {
+                    console.log(response);
+                }
+            })
+        }
+    
+        jQuery(document).ready(function ($) {
+            $('#multiselect').multiselect();
+
+            $('#groupAddSubmit').click(
+                function () {
+                    groupadd();
+                }
+            );
+
+        })
+    </script>
+{% endblock %}
+
+{% block label %}
+    {% if group.id %}
+        编辑组
+    {% else %}
+        新增组
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div id="groupAdd">
+        <fieldset>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="control-label">组名:</label>
+                    <input type="text" name="name" id="name" value="{{ group.name }}">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">描述:</label>
+                    <input type="text" name="description" id="description" value="{{ group.description }}">
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label for="id_permissions">权限:</label>
+                        <div class="related-widget-wrapper">
+                            <div class="selector">
+                                <!--权限左右选择框开始-->
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <select name="from" id="multiselect" class="form-control" size="8"
+                                                multiple="multiple">
+                                            <option value="1">Item 1</option>
+                                            <option value="2">Item 5</option>
+                                            <option value="2">Item 2</option>
+                                            <option value="2">Item 4</option>
+                                            <option value="3">Item 3</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-1">
+                                        <button type="button" id="multiselect_rightAll" class="btn btn-block"><i
+                                                class="glyphicon glyphicon-forward"></i></button>
+                                        <button type="button" id="multiselect_rightSelected"
+                                                class="btn btn-block"><i
+                                                class="glyphicon glyphicon-chevron-right"></i></button>
+                                        <button type="button" id="multiselect_leftSelected"
+                                                class="btn btn-block"><i
+                                                class="glyphicon glyphicon-chevron-left"></i></button>
+                                        <button type="button" id="multiselect_leftAll" class="btn btn-block"><i
+                                                class="glyphicon glyphicon-backward"></i></button>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <select name="to" id="multiselect_to" class="form-control" size="8"
+                                                multiple="multiple"></select>
+                                    </div>
+                                </div>
+                                <!--权限左右选择框结束-->
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+        </fieldset>
+        <fieldset>
+            <button class="btn btn-labeled btn-success" id="groupAddSubmit">
+                <span class="btn-label"><i class="fa fa-check"></i></span>
+                提交
+            </button>
+            <a href="{% url 'group_list' %}" type="button" class="btn btn-labeled btn-primary">
+            <span class="btn-label"><i class="fa fa-undo"></i></span>
+            返回
+            </a>
+        </fieldset>
+    </div>
+{% endblock %}

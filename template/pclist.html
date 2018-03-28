@@ -104,9 +104,8 @@
                                                 message:data.data.message,
                                                 status:'info'
                                             });
-                                            setTimeout(function () {
-                                                $(location).attr('href', '{% url 'pc_list' %}');
-                                            },1000);
+                                            //调用ajax方法刷新页面
+                                            this.getpage(this.pc_current);
                                         }else{
                                             UIkit.notify({
                                                message:data.data.message,
@@ -130,10 +129,8 @@
                                             message:data.data.data,
                                             status:'info'
                                             });
-                                            //延迟1秒用于显示通知，然后刷新页面
-                                            setTimeout(function () {
-                                                $(location).attr('href', '{% url 'pc_list' %}');
-                                            },1000);
+                                            //调用ajax方法刷新页面
+                                            this.getpage(this.pc_maxpage);
                                         }else{
                                             UIkit.notify({
                                             message:data.data.data,
@@ -167,9 +164,8 @@
                                             message:data.data.data,
                                             status:'info'
                                         });
-                                        setTimeout(function () {
-                                            $(location).attr('href', '{% url 'pc_list' %}');
-                                        },1000)
+                                        //调用ajax方法刷新页面
+                                        this.getpage(this.pc_current);
                                     }else{
                                         UIkit.notify({
                                             message:data.data.data,

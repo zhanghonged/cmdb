@@ -8,51 +8,6 @@
 
     <script src="{% static 'jquery/jquery-1.10.1.js' %}"></script>
     <script>
-        function userSave() {
-            var data = $('#Register').serializeArray();
-            var dict = {};
-            $.each(data, function () {
-                dict[this.name] = this.value
-            });
-            dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
-            //console.log(dict);
-            $.ajax(
-                {
-                    url: '/user/user_save',
-                    type: 'post',
-                    data: dict,
-                   // processData: false, // 告诉jQuery不要去处理发送的数据
-                   // contentType: false, // 告诉jQuery不要去设置Content-Type请求头
-                    success: function (data) {
-                        //console.log(data);
-                        if (data.status == 'success') {
-                            UIkit.notify({
-                                message:data.data,
-                                status:'info'
-                            });
-                            //清空表单值
-                            $('#id_username').val('');
-                            $('#id_password').val('');
-                            setTimeout(function () {
-                                $(location).attr('href', '{% url 'user_list' %}');
-                            },1000);
-                        } else {
-                            UIkit.notify({
-                                message:data.data,
-                                status:'info'
-                            });
-                        }
-                    },
-                    error: function (error) {
-                        $('.top-right').notify({
-                            message: {text: error.data},
-                            type: "danger"
-                        }).show();
-                    }
-                }
-            )
-        }
-
         $(function () {
             //用户注册表单验证
             $('#Register').bootstrapValidator({
@@ -123,15 +78,9 @@
                 }
             });
 
-            //用户注册提交按钮
-            $('#UserSubmit').click(
-                function () {
-                    userSave();
-                }
-            );
-
             //vue实现用户信息展示
             Vue.use(VueResource); //这里在强调我们用vue-resource.js代替vue.js
+            Vue.http.options.emulateJSON = true;
             new Vue(
                 {
                     el: '#myuser', //绑定的对象是id为app的对象
@@ -140,7 +89,11 @@
                         user_range: '',
                         user_current: '',
                         user_maxpage: '',
-                        user_page_num:''
+                        user_page_num: '',
+                        user_edit:{},
+                        user_del_username:'',
+                        user_del_id:'',
+                        action:''
                     },//绑定的数据,定义数据模型
                     created: function () {
                         //var url = '/user/user_list_data/?page=1';
@@ -178,8 +131,98 @@
                                     console.log(response);
                                 }//请求失败
                             )
+                        },
+                        usersave:function (id) {
+                            var dict = this.user_edit;
+                            dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                            //如果id存在则为修改，否则为添加
+                            if(id){
+                                console.log(this.action);
+                                var url = '/user/user_edit/';
+                                dict['id'] = id;
+                                this.$http.post(url,dict).then(
+                                    function (data) {
+                                        //console.log(data);
+                                        if(data.data.status == 'success'){
+                                            UIkit.notify({
+                                                message:data.data.data,
+                                                status:'info'
+                                            });
+                                            this.getpage(this.user_current);
+                                        }else{
+                                            UIkit.notify({
+                                                message:data.data.data,
+                                                status:'danger'
+                                            });
+                                        }
+                                    },
+                                    function (response) {
+                                        console.log(response);
+                                    }
+                                )
+                            }else{
+                                var url = '/user/user_save/';
+                                //console.log(dict);
+                                this.$http.post(url,dict).then(
+                                    function (data) {
+                                        console.log(data);
+                                        if(data.data.status == 'success'){
+                                            UIkit.notify({
+                                                message:data.data.data,
+                                                status:'info'
+                                            });
+                                            this.getpage(this.user_maxpage);
+                                        }else{
+                                            UIkit.notify({
+                                                message:data.data.data,
+                                                status:'danger'
+                                            });
+                                        }
+                                    },
+                                    function (response) {
+                                        console.log(response);
+                                    }
+                                )
+                            }
+
+
+                        },
+                        useredit:function (id) {
+                            this.action = 'edit';
+                            for(var u of this.user_data) {
+                                if(u.id == id){
+                                    this.user_edit = u;
+                                }
+                           }
+                        },
+                        userdel:function (id,name) {
+                            this.user_del_username = name;
+                            this.user_del_id = id;
+                        },
+                        userdel_save:function (id) {
+                            var url = '/user/user_del/?uid='+id;
+                            this.$http.get(url).then(
+                                function (data) {
+                                    //console.log(data);
+                                    if(data.data.status == 'success'){
+                                        UIkit.notify({
+                                            message:data.data.data,
+                                            status:'info'
+                                        });
+                                        this.getpage(this.user_current);
+                                    }else{
+                                        UIkit.notify({
+                                            message:data.data.data,
+                                            status:'danger'
+                                        });
+                                    }
+                                },
+                                function (response) {
+                                    console.log(response);
+                                }
+                            )
                         }
-                    }//用来定义被绑定的方法
+                    }
                 }
             )
 
@@ -192,99 +235,157 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        <!--模态框开始-->
-        <div class="col-lg-11">
-            <button type="button" class="btn btn-primary btn-lg navbar-right" data-toggle="modal"
-                    data-target="#userRegister">
-                添加用户
-            </button>
+    {% verbatim myblock %}
+        <div id="myuser">
+            <div class="row">
 
-            <div class="modal fade" id="userRegister" tabindex="-1" role="dialog" aria-labelledby="userRegister">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content"><!--模态框内容开始-->
-                        <div class="modal-header"><!--模态框标题-->
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
-                            <h4 class="modal-title" id="ourRegisterTitle">用户注册</h4>
-                        </div>
-                        <div class="modal-body">
-                            <form class="Register" id="Register" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label class="control-label">{{ register.username.label }}</label>
-                                    {{ register.username }}
+                <div class="col-lg-11">
+                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                            data-target="#editUser">
+                        添加用户
+                    </button>
+                    <!--模态框开始-->
+                    <div class="modal fade" id="editUser" tabindex="-1" role="dialog" aria-labelledby="editUser">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header pannel-heading">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                        &times;
+                                    </button>
+                                    <h4 class="modal-title" id="editPcTitle">用户信息</h4>
                                 </div>
-                                <div class="form-group">
-                                    <label class="control-label">{{ register.password.label }}</label>
-                                    {{ register.password }}
+                                <div class="panel-body">
+                                    <div class="modal-body">
+                                        <form id="editPcForm" class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-2">用户名</label>
+                                                <div class="col-sm-10">
+                                                    <input v-if="action == 'edit'" class="form-control" type="text" name="username" v-model="user_edit.username" disabled>
+                                                    <input v-else class="form-control" type="text" name="username" v-model="user_edit.username">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-2">密码</label>
+                                                <div class="col-sm-10">
+                                                    <input class="form-control" type="password" name="password" v-model="user_edit.password">
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-2">用户组</label>
+                                                <div class="col-sm-10">
+                                                    <select class="form-control" name="group" >
+                                                        <option>1</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
-                            </form>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                                <button id="UserSubmit" type="submit" class="btn btn-primary" data-dismiss="modal">提交
-                                </button>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                    <button class="btn btn-success" data-dismiss="modal" v-on:click="usersave(user_edit.id)">
+                                        提交
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <!--模态框结束-->
                 </div>
             </div>
-        </div>
-        <!--模态框结束-->
-    </div>
-    <br>
-    <!--用户展示部分-->
-    <div class="row">
-        {% verbatim myblock %}
-            <div class="col-lg-12" id="myuser">
-                <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
-                    <thead>
-                    <tr>
-                        <th>序号</th>
-                        <th>用户名</th>
-                        <th>电话</th>
-                        <th>邮箱</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="odd gradeX" v-for='(user,index) in user_data'>
-                        <td v-text="(user_current - 1)*user_page_num + index + 1"></td>
-                        <td v-text="user.username"></td>
-                        <td v-text="user.phone"></td>
-                        <td v-text="user.email"></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        <li v-if="user_current == 1" class="disabled">
-                            <a aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                        <li v-if="user_current > 1">
-                            <a v-on:click="getpage(user_current-1)" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
+            <br>
+            <!--用户展示部分-->
+            <div class="row">
 
-                        <li v-for="page in user_range" v-bind:class="{ 'active': page == user_current }">
-                            <a herf="#" v-on:click="getpage(page)"><span v-text="page"></span></a>
-                        </li>
+                <div class="col-lg-12">
+                    <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>用户名</th>
+                            <th>电话</th>
+                            <th>邮箱</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="odd gradeX" v-for='(user,index) in user_data'>
+                            <td v-text="(user_current - 1)*user_page_num + index + 1"></td>
+                            <td v-text="user.username"></td>
+                            <td v-text="user.phone"></td>
+                            <td v-text="user.email"></td>
+                            <td>
+                                <a v-if="user.username != 'admin'" class="btn btn-success" type="button" v-on:click="useredit(user.id)" data-toggle="modal" data-target="#editUser">编辑</a>
+                                <a v-if="user.username != 'admin'" class="btn btn-danger" type="button" v-on:click="userdel(user.id,user.username)" data-toggle="modal" data-target="#delUser">删除</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                <!--删除模态框开始，确认是否删除-->
+                <div class="modal fade" id="delUser" tabindex="-1" role="dialog" aria-labelledby="delUser"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                                </button>
+                                <h4 class="modal-title" id="myModalLabel">请确定是否要删除<span style="color:seagreen;font-weight:bold;">{{ user_del_username }}</span></h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-lg-4"></div>
+                                    <div class="col-lg-4">
+                                        <button type="button" class="btn btn-warning" v-on:click="userdel_save(user_del_id)"
+                                                data-dismiss="modal">确 认
+                                        </button>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
+                                    </div>
+                                    <div class="col-lg-4"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+                <!--删除模态框结束-->
+
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li v-if="user_current == 1" class="disabled">
+                                <a aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li v-if="user_current > 1">
+                                <a v-on:click="getpage(user_current-1)" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <li v-for="page in user_range" v-bind:class="{ 'active': page == user_current }">
+                                <a herf="#" v-on:click="getpage(page)"><span v-text="page"></span></a>
+                            </li>
 
 
-                        <li v-if="user_current == user_maxpage" class="disabled">
-                            <a aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                        <li v-if="user_current < user_maxpage">
-                            <a v-on:click="getpage(user_current+1)" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                            <li v-if="user_current == user_maxpage" class="disabled">
+                                <a aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li v-if="user_current < user_maxpage">
+                                <a v-on:click="getpage(user_current+1)" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+
             </div>
-
-        {% endverbatim myblock %}
-    </div>
+        </div>
+    {% endverbatim myblock %}
 {% endblock %}

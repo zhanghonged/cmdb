@@ -20,20 +20,79 @@
             {
             el:'#mygroup',
             data:{
-                group_data:''
+                group_data:'',
+                group_range: '',
+                group_current: '',
+                group_maxpage: '',
+                group_edit:{},
+                group_del_id:'',
+                group_del_name:'',
+                group_page_num:''
             },
               created:function () {
                     var url = '/user/group_list_data/?page=1';
                     this.$http.get(url).then(
                         function (data) {
-                            console.log(data);
+                            //console.log(data);
                             this.group_data = data.data.page_data;
-                            console.log(this.group_data);
+                            this.group_range = data.data.page_range;
+                            this.group_current = data.data.current_page;
+                            this.group_maxpage = data.data.max_page;
+                            this.group_page_num = data.data.page_num;
                         },
                         function (response) {
                             console.log(response);
                         }
                     )
+                },
+                methods:{
+                    getpage:function (page) {
+                        var url = '/user/group_list_data/?page='+page;
+                        this.$http.get(url).then(
+                            function (data) {
+                                //console.log(data);
+                                this.group_data = data.data.page_data;
+                                this.group_range = data.data.page_range;
+                                this.group_current = data.data.current_page;
+                                this.group_maxpage = data.data.max_page;
+                                this.group_page_num = data.data.page_num;
+                            },
+                            function (response) {
+                                console.log(response)
+                            }
+                        )
+                    },
+                    group_del:function (id,name) {
+                        this.group_del_id = id;
+                        this.group_del_name = name;
+                    },
+                    group_del_save:function (id) {
+                        var url = '/user/group_del/?gid='+id;
+                        this.$http.get(url).then(
+                            function (data) {
+                                console.log(data);
+                                if(data.data.status == 'success'){
+                                    UIkit.notify({
+                                        message:data.data.data,
+                                        status:'info'
+                                    });
+                                    this.getpage(1);
+                                }else{
+                                    UIkit.notify({
+                                        message:data.data.data,
+                                        status:'danger'
+                                    })
+                                }
+                            },
+                            function (response) {
+                                console.log(response);
+                            }
+                        )
+                    },
+                    group_add:function (id) {
+                        var url = '/user/group_add_page/?gid='+id;
+                        window.open(url,"_self");
+                    }
                 }
             }
         )
@@ -49,7 +108,7 @@
     <div id="mygroup">
     {% verbatim myblock1 %}
         <div class="col-lg-12">
-                <a href="/user/group_add/" type="button" class="btn btn-labeled btn-success">
+                <a href="/user/group_add_page/" type="button" class="btn btn-labeled btn-success">
                     <span class="btn-label"><i class="fa fa-plus"></i></span>
                     新增组
                 </a>
@@ -59,15 +118,82 @@
                     <tr>
                         <th>组名</th>
                         <th>描述</th>
+                        <th>操作</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr class="odd gradeX" v-for='g in group_data'>
-                        <td>{{ g.name }}</td>
                         <td v-text="g.name"></td>
+                        <td v-text="g.description"></td>
+                        <td>
+                            <a class="btn btn-success"  type="button" v-on:click="group_add(g.id)">编辑</a>
+                            <a class="btn btn-danger" type="button" v-on:click="group_del(g.id,g.name)" data-toggle="modal" data-target="#DModal">删除</a>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
+
+                <!--删除模态框开始，确认是否删除-->
+                <div class="modal fade" id="DModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                                </button>
+                                <h4 class="modal-title" id="myModalLabel">请确定是否要删除<span style="color:seagreen;font-weight:bold;">{{ group_del_name }}</span></h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-lg-4"></div>
+                                    <div class="col-lg-4">
+                                        <button type="button" class="btn btn-warning" v-on:click="group_del_save(group_del_id)" data-dismiss="modal">
+                                            确 认
+                                        </button>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
+                                    </div>
+                                    <div class="col-lg-4"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+                <!--删除模态框结束-->
+
+                <!--分页开始-->
+                <nav aria-label="Page navigation" class="">
+                    <ul class="pagination">
+                        <li v-if="group_current == 1" class="disabled">
+                            <a aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li v-if="group_current > 1">
+                            <a v-on:click="getpage(group_current-1)" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        <li v-for="page in group_range" v-bind:class="{ 'active': page == group_current }">
+                            <a herf="#" v-on:click="getpage(page)">{{ page }}</a>
+                        </li>
+
+
+                        <li v-if="group_current == group_maxpage" class="disabled">
+                            <a aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li v-if="group_current < group_maxpage">
+                            <a v-on:click="getpage(group_current+1)" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!--分页结束-->
             </div>
     {% endverbatim myblock1 %}
     </div>

@@ -28,6 +28,7 @@ def user_list(request):
     uid = request.COOKIES.get('id')
     user = CMDBUser.objects.get(id=uid)
     register = Register
+    groups = CMDBGroup.objects.all()
     return render(request,'userlist.html',locals())
 
 def user_list_data(request):
@@ -114,6 +115,49 @@ def user_save(request):
         else:
             print '表单校验失败:',obj.errors
             result['data'] = '注册失败'
+    return JsonResponse(result)
+
+def user_edit(request):
+    result = {'status': 'error', 'data': ''}
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        id = request.POST.get('id')
+        if username and password and id:
+            if password.isdigit():
+                result['data'] = '编辑失败，密码不可以完全由数字组成'
+            elif password.isalnum():
+                result['data'] = '编辑失败，密码不可以完全由数字字母组成'
+            else:
+                try:
+                    u = CMDBUser.objects.get(id = id)
+                except Exception as e:
+                    result['data'] = str(e)
+                else:
+                    u.password = getmd5(password)
+                    u.save()
+                    result['status'] = 'success'
+                    result['data'] = '编辑成功'
+        else:
+            result['data'] = '编辑失败，字段不能为空'
+    else:
+        result['data'] = '编辑失败，必须为POST请求'
+    return JsonResponse(result)
+
+def user_del(request):
+    result = {'status':'error','data':''}
+    if request.method == 'GET':
+        uid = request.GET.get('uid')
+        if uid:
+            try:
+                CMDBUser.objects.get(id = uid).delete()
+            except Exception as e:
+                result['data'] = str(e)
+            else:
+                result['status'] = 'success'
+                result['data'] = '删除成功'
+        else:
+            result['data'] = '用户ID不存在'
     return JsonResponse(result)
 
 def user_setting(request):
@@ -226,9 +270,12 @@ def group_list(request):
     register = Register
     return render(request,'usergroups.html',locals())
 
-
-def group_add(request):
-    return render(request,'usergroups_add.html',locals())
+def group_add_page(request):
+    if request.method == 'GET':
+        id = request.GET.get('gid')
+        if id:
+            group = CMDBGroup.objects.get(id=id)
+    return render(request,'groupadd.html',locals())
 
 def group_list_data(request):
     if request.method == 'GET':
@@ -257,7 +304,7 @@ def group_list_data(request):
         }
     return JsonResponse(result)
 
-def group_detail(request):
+def group_add(request):
     result = {'status':'error','data':''}
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -277,4 +324,47 @@ def group_detail(request):
         result['data'] = '新建组失败,必须为POST请求方式'
 
     print result
+    return JsonResponse(result)
+
+def group_edit(request):
+    result = {'status':'error','data':''}
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        id = request.POST.get('gid')
+        if id:
+            try:
+                group = CMDBGroup.objects.get(id=id)
+            except Exception as e:
+                result['data'] = str(e)
+            else:
+                groupList = CMDBGroup.objects.filter(name = name).exclude(id = id)
+                if len(groupList) > 0:
+                    result['data'] = '编辑组失败,组名已存在'
+                else:
+                    group.name = name
+                    group.description = description
+                    group.save()
+                    result['status'] = 'success'
+                    result['data'] = '修改成功'
+        else:
+            result['data'] = '编辑组失败，无法获取组名'
+    else:
+        result['data'] = '编辑组失败,必须为POST请求方式'
+    return JsonResponse(result)
+
+def group_del(request):
+    result = {'status':'error','data':''}
+    if request.method == 'GET':
+        id = request.GET.get('gid')
+        if id:
+            try:
+                CMDBGroup.objects.get(id=id).delete()
+            except Exception as e:
+                result['data'] = e
+            else:
+                result['status'] = 'success'
+                result['data'] = '删除成功'
+        else:
+            result['data'] = '组ID不存在'
     return JsonResponse(result)
