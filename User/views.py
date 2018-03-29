@@ -176,39 +176,44 @@ def user_edit(request):
         groupname = request.POST.get('groupname')
         id = request.POST.get('id')
         if username and password and id:
-            if password.isdigit():
-                result['data'] = '编辑失败，密码不可以完全由数字组成'
-            elif password.isalnum():
-                result['data'] = '编辑失败，密码不可以完全由数字字母组成'
+            try:
+                # 判断用户id是否存在
+                u = CMDBUser.objects.get(id = id)
+                uid = u.id
+            except Exception as e:
+                result['data'] = str(e)
             else:
+                # 判断用户提交的组是否存在
                 try:
-                    u = CMDBUser.objects.get(id = id)
-                    uid = u.id
+                    g = CMDBGroup.objects.get(name=groupname)
+                    gid = g.id
                 except Exception as e:
                     result['data'] = str(e)
                 else:
-                    # 判断用户提交的组是否存在
-                    try:
-                        g = CMDBGroup.objects.get(name=groupname)
-                        gid = g.id
-                    except Exception as e:
-                        result['data'] = str(e)
-                    else:
-                        # 用户密码修改入库
-                        u.password = getmd5(password)
-                        u.save()
-                        # 用户组关系修改入库
-                        # 如果当前用户有组就修改，否则添加
-                        try:
-                            obj = User_group.objects.get(user_id=uid)
-                        except:
-                            User_group.objects.create(user_id=uid,group_id=gid)
+                    # 判断用户密码，如果和数据库不同，则加密入库，否则不处理
+                    if u.password != password:
+                        #判断密码复杂性要求
+                        if password.isdigit():
+                            result['data'] = '编辑失败，密码不可以完全由数字组成'
+                        elif password.isalnum():
+                            result['data'] = '编辑失败，密码不可以完全由数字字母组成'
                         else:
-                            obj.group_id = gid
-                            obj.save()
-                        finally:
-                            result['status'] = 'success'
-                            result['data'] = '编辑成功'
+                            # 用户密码修改入库
+                            u.password = getmd5(password)
+                            u.save()
+
+                    # 用户组关系修改入库
+                    # 如果当前用户有组就修改，否则添加
+                    try:
+                        obj = User_group.objects.get(user_id=uid)
+                    except:
+                        User_group.objects.create(user_id=uid,group_id=gid)
+                    else:
+                        obj.group_id = gid
+                        obj.save()
+                    finally:
+                        result['status'] = 'success'
+                        result['data'] = '编辑成功'
         else:
             result['data'] = '编辑失败，字段不能为空'
     else:
@@ -331,6 +336,7 @@ def login(request):
             return redirect('login')
     return redirect('login')
 
+@loginValid
 def group_list(request):
     '''
     用户组管理页
@@ -342,6 +348,7 @@ def group_list(request):
     register = Register
     return render(request,'usergroups.html',locals())
 
+@loginValid
 def group_add_page(request):
     if request.method == 'GET':
         id = request.GET.get('gid')
