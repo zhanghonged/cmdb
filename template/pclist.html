@@ -11,8 +11,9 @@
         function data_list() {
             // 数据展示部分，下面是使用vue展示分页数据
             // 请求方式为vue-ajax请求
-            Vue.use(VueResource); //这里在强调我们用vue-resource.js代替vue.js
-
+            //使用VueResource插件
+            //使用VueResource来进行ajax请求，Vue本身不支持ajax请求
+            Vue.use(VueResource);
             // 设置 POST 请求时 的 data 格式
             Vue.http.options.emulateJSON = true;
 

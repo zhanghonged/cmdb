@@ -4,7 +4,7 @@ from PIL import Image
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from forms import Register, UserSetting
-from models import CMDBUser,CMDBGroup
+from models import CMDBUser,CMDBGroup,User_group
 from Equipment.models import Equipment,Pc
 from cmdb.views import getpage ,loginValid, getdata
 
@@ -30,6 +30,29 @@ def user_list(request):
     register = Register
     groups = CMDBGroup.objects.all()
     return render(request,'userlist.html',locals())
+
+def get_userGroup(uid):
+    '''
+    根据用户id查询当前用户的属组
+    :param uid:
+    :return:
+    '''
+    result={'status':'error','data':''}
+    try:
+        obj = User_group.objects.get(user_id=uid)
+    except Exception as e:
+        result['data'] = str(e)
+    else:
+        gid = obj.group_id
+        try:
+            group = CMDBGroup.objects.get(id = gid)
+        except Exception as e:
+            result['data'] = str(e)
+        else:
+            groupname = group.name
+            result['status'] = 'success'
+            result['data'] = groupname
+    return result
 
 def user_list_data(request):
     '''
@@ -61,9 +84,17 @@ def user_list_data(request):
             'max_page': '',
             'page_num':''
         }
+    # 获取用户组信息
     group_sql = 'select * from User_cmdbgroup'
     group_result = getdata(group_sql)
     result['groupData'] = group_result
+
+    # 获取当前用户的属组信息
+    for u in result['page_data']:
+        res = get_userGroup(u['id'])
+        if res['status'] == 'success':
+            u['groupname'] = res['data']
+
     return JsonResponse(result)
 
 def userValid(request):
@@ -105,19 +136,36 @@ def user_save(request):
             print '表单校验成功:',obj.cleaned_data
             username = obj.cleaned_data['username']
             password = getmd5(obj.cleaned_data['password'])
-            # 入库
+            groupname = request.POST.get('groupname')
+
             try:
-                CMDBUser.objects.create(username=username,password=password)
+                # 用户入库
+                u= CMDBUser(username=username,password=password)
+                u.save()
+                uid = u.id
             except Exception as e:
                 print e
-                result['data'] = '注册失败'
+                result['data'] = '添加用户失败'
             else:
-                result['status'] = 'success'
-                result['data'] = '用户注册成功'
+                try:
+                    # 判断用户提交的组是否存在
+                    g = CMDBGroup.objects.get(name=groupname)
+                    gid = g.id
+                except Exception as e:
+                    result['data'] = str(e)
+                else:
+                    try:
+                        # 用户组关系入库
+                        User_group.objects.create(user_id=uid,group_id=gid )
+                    except Exception as e:
+                        result['data'] = str(e)
+                    else:
+                        result['status'] = 'success'
+                        result['data'] = '添加用户成功'
 
         else:
             print '表单校验失败:',obj.errors
-            result['data'] = '注册失败'
+            result['data'] = '添加用户失败'
     return JsonResponse(result)
 
 def user_edit(request):
@@ -125,6 +173,7 @@ def user_edit(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        groupname = request.POST.get('groupname')
         id = request.POST.get('id')
         if username and password and id:
             if password.isdigit():
@@ -134,13 +183,32 @@ def user_edit(request):
             else:
                 try:
                     u = CMDBUser.objects.get(id = id)
+                    uid = u.id
                 except Exception as e:
                     result['data'] = str(e)
                 else:
-                    u.password = getmd5(password)
-                    u.save()
-                    result['status'] = 'success'
-                    result['data'] = '编辑成功'
+                    # 判断用户提交的组是否存在
+                    try:
+                        g = CMDBGroup.objects.get(name=groupname)
+                        gid = g.id
+                    except Exception as e:
+                        result['data'] = str(e)
+                    else:
+                        # 用户密码修改入库
+                        u.password = getmd5(password)
+                        u.save()
+                        # 用户组关系修改入库
+                        # 如果当前用户有组就修改，否则添加
+                        try:
+                            obj = User_group.objects.get(user_id=uid)
+                        except:
+                            User_group.objects.create(user_id=uid,group_id=gid)
+                        else:
+                            obj.group_id = gid
+                            obj.save()
+                        finally:
+                            result['status'] = 'success'
+                            result['data'] = '编辑成功'
         else:
             result['data'] = '编辑失败，字段不能为空'
     else:
@@ -154,6 +222,7 @@ def user_del(request):
         if uid:
             try:
                 CMDBUser.objects.get(id = uid).delete()
+                User_group.objects.get(user_id=uid).delete()
             except Exception as e:
                 result['data'] = str(e)
             else:
@@ -363,6 +432,7 @@ def group_del(request):
         if id:
             try:
                 CMDBGroup.objects.get(id=id).delete()
+                User_group.objects.filter(group_id=id).delete()
             except Exception as e:
                 result['data'] = e
             else:

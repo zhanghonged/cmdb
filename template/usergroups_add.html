@@ -29,7 +29,7 @@
                             var url = '/user/group_detail/';
                             this.$http.post(url,data).then(
                                 function (data) {
-                                    console.log(data);
+                                    //console.log(data);
                                     if(data.data.status == 'success'){
                                         UIkit.notify({
                                             message:data.data.data,

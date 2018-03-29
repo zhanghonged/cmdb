@@ -79,7 +79,9 @@
             });
 
             //vue实现用户信息展示
-            Vue.use(VueResource); //这里在强调我们用vue-resource.js代替vue.js
+            //使用VueResource插件
+            //使用VueResource来进行ajax请求，Vue本身不支持ajax请求
+            Vue.use(VueResource);
             Vue.http.options.emulateJSON = true;
             new Vue(
                 {
@@ -137,9 +139,10 @@
                         usersave:function (id) {
                             var dict = this.user_edit;
                             dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                            //console.log(dict);
                             //如果id存在则为修改，否则为添加
                             if(id){
-                                console.log(this.action);
+                                //console.log(this.action);
                                 var url = '/user/user_edit/';
                                 dict['id'] = id;
                                 this.$http.post(url,dict).then(
@@ -262,21 +265,21 @@
                                             <div class="form-group">
                                                 <label class="control-label col-sm-2">用户名</label>
                                                 <div class="col-sm-10">
-                                                    <input v-if="action == 'edit'" class="form-control" type="text" name="username" v-model="user_edit.username" disabled>
-                                                    <input v-else class="form-control" type="text" name="username" v-model="user_edit.username">
+                                                    <input v-if="action == 'edit'" class="form-control" type="text" id="id_username" name="username" v-model="user_edit.username" disabled>
+                                                    <input v-else class="form-control" type="text" id="id_username" name="username" v-model="user_edit.username">
                                                 </div>
                                             </div>
                                             <div class="form-group">
                                                 <label class="control-label col-sm-2">密码</label>
                                                 <div class="col-sm-10">
-                                                    <input class="form-control" type="password" name="password" v-model="user_edit.password">
+                                                    <input class="form-control" type="password" id="id_password" name="password" v-model="user_edit.password">
                                                 </div>
                                             </div>
 
                                             <div class="form-group">
                                                 <label class="control-label col-sm-2">用户组</label>
                                                 <div class="col-sm-10">
-                                                    <select class="form-control" name="group" >
+                                                    <select class="form-control" id="id_group" name="group" v-model="user_edit.groupname">
                                                         <option v-for="g in group_data">{{ g.name }}</option>
                                                     </select>
                                                 </div>
@@ -308,6 +311,7 @@
                             <th>用户名</th>
                             <th>电话</th>
                             <th>邮箱</th>
+                            <th>属组</th>
                             <th>操作</th>
                         </tr>
                         </thead>
@@ -317,6 +321,7 @@
                             <td v-text="user.username"></td>
                             <td v-text="user.phone"></td>
                             <td v-text="user.email"></td>
+                            <td v-text="user.groupname"></td>
                             <td>
                                 <a v-if="user.username != 'admin'" class="btn btn-success" type="button" v-on:click="useredit(user.id)" data-toggle="modal" data-target="#editUser">编辑</a>
                                 <a v-if="user.username != 'admin'" class="btn btn-danger" type="button" v-on:click="userdel(user.id,user.username)" data-toggle="modal" data-target="#delUser">删除</a>

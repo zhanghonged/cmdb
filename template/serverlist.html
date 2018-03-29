@@ -53,7 +53,9 @@
                 getConnect();
             }
         );
-        Vue.use(VueResource); //这里在强调我们用vue-resource.js代替vue.js
+        //使用VueResource插件
+        //使用VueResource来进行ajax请求，Vue本身不支持ajax请求
+        Vue.use(VueResource);
         new Vue(
             {
                 el: '#myserver', //绑定的对象是id为myserver的对象
