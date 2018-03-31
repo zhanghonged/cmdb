@@ -1,6 +1,7 @@
 #coding:utf-8
 import os
 import random
+import datetime
 import xlsxwriter
 from django.shortcuts import render, redirect
 from django.db import connection
@@ -31,9 +32,29 @@ def loginValid(fun):
         isLogin = request.session.get('isLogin',False)
         # 根据浏览器cookie里存储的sessionid在session表里查看登录状态
         if isLogin:
+            #print fun.__name__
             return fun(request, *args, **kwargs)
         else:
             return redirect('login')
+    return inner
+
+def logrecord(f):
+    '''
+    用户操作日志装饰器
+    :param func:
+    :return:
+    '''
+    def inner(request, *args, **kwargs):
+        try:
+            result = f(request, *args, **kwargs)
+        except Exception as e:
+            print e
+        else:
+            print '------------------------'
+            print datetime.datetime.now()
+            print f.__name__
+            print '++++++++++++++++++++++++'
+            return result
     return inner
 
 @loginValid

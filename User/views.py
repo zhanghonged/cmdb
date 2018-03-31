@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from forms import Register, UserSetting
 from models import CMDBUser,CMDBGroup,User_group
 from Equipment.models import Equipment,Pc
-from cmdb.views import getpage ,loginValid, getdata
+from cmdb.views import getpage ,loginValid, getdata, logrecord
 
 
 # Create your views here.
@@ -18,6 +18,8 @@ def index(request):
     pcCount = len(Pc.objects.all())
     userCount = len(CMDBUser.objects.all())
     return render(request,'index.html',{'user':user,'serverCount':serverCount,'pcCount':pcCount,'userCount':userCount})
+
+
 
 @loginValid
 def user_list(request):
@@ -295,6 +297,7 @@ def user_setting(request):
     print result
     return JsonResponse(result)
 
+@logrecord
 def login(request):
     '''
     登录验证
