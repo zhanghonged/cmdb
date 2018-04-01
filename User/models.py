@@ -40,4 +40,9 @@ class User_permission(models.Model):
 class Permission_group(models.Model):
     permission_id = models.IntegerField(verbose_name='权限ID')
     group_id = models.IntegerField(verbose_name='组ID')
+
+class User_logs(models.Model):
+    username = models.CharField(max_length=32, verbose_name='用户名')
+    action = models.CharField(max_length=32, verbose_name='动作')
+    action_time = models.DateTimeField(verbose_name='操作时间')
 # Create your models here.

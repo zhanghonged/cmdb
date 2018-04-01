@@ -1,10 +1,11 @@
 #coding:utf-8
 import os
 import random
-import datetime
+import time
 import xlsxwriter
 from django.shortcuts import render, redirect
 from django.db import connection
+from User.models import CMDBUser,User_logs
 
 content = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz'
 # def base(request):
@@ -38,7 +39,7 @@ def loginValid(fun):
             return redirect('login')
     return inner
 
-def logrecord(f):
+def logrecord(fun):
     '''
     用户操作日志装饰器
     :param func:
@@ -46,23 +47,55 @@ def logrecord(f):
     '''
     def inner(request, *args, **kwargs):
         try:
-            result = f(request, *args, **kwargs)
+            result = fun(request, *args, **kwargs)
         except Exception as e:
             print e
         else:
-            print '------------------------'
-            print datetime.datetime.now()
-            print f.__name__
-            print '++++++++++++++++++++++++'
-            return result
+            action_dict = {
+                'login':'登录',
+                'logout':'登出',
+                'user_save':'添加用户',
+                'user_edit':'编辑用户',
+                'user_del':'删除用户',
+                'group_add':'添加用户组',
+                'group_edit':'编辑用户组',
+                'group_del':'删除用户组',
+                'pc_add':'添加PC',
+                'pc_edit':'编辑PC',
+                'pc_del': '删除PC',
+                'export_pc': '导出PC报表',
+                'server_add': '添加服务器',
+                'get_auth_obj': 'SSH连接服务器',
+                'user_setting':'修改个人设置'
+            }
+            fun_name =  fun.__name__
+            action = action_dict[fun_name]
+
+            if fun.__name__ == 'logout':
+                id = request.COOKIES.get('id')
+                user = CMDBUser.objects.get(id = id)
+                username =  user.username
+            else:
+                username = request.session.get('nname')
+            action_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
+            try:
+                User_logs.objects.create(username=username,action=action,action_time=action_time)
+            except Exception as e:
+                print e
+            finally:
+                return result
     return inner
 
 @loginValid
+@logrecord
 def logout(request):
     isLogin = request.session.get('isLogin',False)
+    response = redirect('login')
     if isLogin:
         request.session.flush()
-    return redirect('login')
+        response.delete_cookie('id')
+        response.delete_cookie('token')
+    return response
 
 def getpage(sql, page, num = 10, maxpage_num = 7):
     '''

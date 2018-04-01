@@ -1,14 +1,13 @@
 #coding:utf-8
-import json
 import time
 import paramiko
 import hmac ,hashlib
 from django.http import StreamingHttpResponse
-from django.shortcuts import render,redirect,HttpResponse
+from django.shortcuts import render
 from User.models import CMDBUser
 from django.http import JsonResponse
 from models import Equipment,Pc
-from cmdb.views import getpage, to_excel, loginValid
+from cmdb.views import getpage, to_excel, loginValid, logrecord
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
@@ -24,6 +23,7 @@ def server_list(request):
     user = CMDBUser.objects.get(id = uid)
     return render(request,'serverlist.html',locals())
 
+@loginValid
 def server_list_data(request):
     '''
     :param request:
@@ -76,6 +76,8 @@ def connect_server(ip,port,user,password):
     finally:
         return result
 
+@loginValid
+@logrecord
 def server_add(request):
     '''
     服务器添加方法，根据ip、port、username、password对服务器操作：远程登录、脚本上传、脚本远程执行
@@ -177,6 +179,7 @@ def server_save(request):
 def pc_list(request):
     return render(request,'pclist.html',locals())
 
+@loginValid
 def pc_list_data(request):
     '''
     查询数据库数据以json格式返回
@@ -227,6 +230,8 @@ def pc_list_data(request):
         }
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def pc_add(request):
     '''
     添加个人pc
@@ -272,6 +277,8 @@ def pc_add(request):
         result['data'] = '必须是POST请求'
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def pc_edit(request):
     result = {'status':'error','data':{},'message':''}
     # 如果是get请求，返回当前pc的数据，用于vue前台默认展示
@@ -336,6 +343,8 @@ def pc_edit(request):
             result['message'] = '修改失败，请联系管理员'
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def pc_del(request):
     result = {'status':'error','data':''}
     if request.method == 'GET':
@@ -373,6 +382,8 @@ def create_signature(secret,*parts):
         hash.update(str(part))
     return hash.hexdigest()
 
+@loginValid
+@logrecord
 def get_auth_obj(request):
     '''
     gateone继承到web界面上
@@ -395,7 +406,6 @@ def get_auth_obj(request):
     auth_info_and_server = {'url':gateone_server,'auth':authobj}
     return JsonResponse(auth_info_and_server)
 
-
 def file_iterator(filename, chunk_size=512):
     '''
     读取文件迭代器
@@ -411,6 +421,8 @@ def file_iterator(filename, chunk_size=512):
             else:
                 break
 
+@loginValid
+@logrecord
 def export_pc(request):
     '''
     导出excel报表功能

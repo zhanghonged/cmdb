@@ -19,8 +19,6 @@ def index(request):
     userCount = len(CMDBUser.objects.all())
     return render(request,'index.html',{'user':user,'serverCount':serverCount,'pcCount':pcCount,'userCount':userCount})
 
-
-
 @loginValid
 def user_list(request):
     '''
@@ -56,6 +54,7 @@ def get_userGroup(uid):
             result['data'] = groupname
     return result
 
+@loginValid
 def user_list_data(request):
     '''
     从数据库查询分页用户数据
@@ -125,6 +124,8 @@ def getmd5(password):
     md5.update(password)
     return md5.hexdigest()
 
+#@loginValid
+@logrecord
 def user_save(request):
     '''
     注册用户
@@ -135,7 +136,7 @@ def user_save(request):
     if request.method == 'POST':
         obj = Register(request.POST)
         if obj.is_valid():
-            print '表单校验成功:',obj.cleaned_data
+            #print '表单校验成功:',obj.cleaned_data
             username = obj.cleaned_data['username']
             password = getmd5(obj.cleaned_data['password'])
             groupname = request.POST.get('groupname')
@@ -170,6 +171,8 @@ def user_save(request):
             result['data'] = '添加用户失败'
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def user_edit(request):
     result = {'status': 'error', 'data': ''}
     if request.method == 'POST':
@@ -222,6 +225,8 @@ def user_edit(request):
         result['data'] = '编辑失败，必须为POST请求'
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def user_del(request):
     result = {'status':'error','data':''}
     if request.method == 'GET':
@@ -239,6 +244,8 @@ def user_del(request):
             result['data'] = '用户ID不存在'
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def user_setting(request):
     '''
     用户个人设置
@@ -322,6 +329,7 @@ def login(request):
                     response = redirect('index')
                     response.set_cookie('id',user.id)
                     request.session['isLogin'] = True
+                    request.session['nname'] = username
 
                     # 记住密码写入cookie，设置有效期为7天
                     if remember == 'Remember-me':
@@ -359,6 +367,7 @@ def group_add_page(request):
             group = CMDBGroup.objects.get(id=id)
     return render(request,'groupadd.html',locals())
 
+@loginValid
 def group_list_data(request):
     if request.method == 'GET':
         page = request.GET.get('page')
@@ -386,6 +395,8 @@ def group_list_data(request):
         }
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def group_add(request):
     result = {'status':'error','data':''}
     if request.method == 'POST':
@@ -408,6 +419,8 @@ def group_add(request):
     print result
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def group_edit(request):
     result = {'status':'error','data':''}
     if request.method == 'POST':
@@ -435,6 +448,8 @@ def group_edit(request):
         result['data'] = '编辑组失败,必须为POST请求方式'
     return JsonResponse(result)
 
+@loginValid
+@logrecord
 def group_del(request):
     result = {'status':'error','data':''}
     if request.method == 'GET':
@@ -450,4 +465,37 @@ def group_del(request):
                 result['data'] = '删除成功'
         else:
             result['data'] = '组ID不存在'
+    return JsonResponse(result)
+
+
+def user_logs(request):
+    uid = request.COOKIES.get('id')
+    user = CMDBUser.objects.get(id=uid)
+    return render(request,'userlogs.html',locals())
+
+def user_logs_data(request):
+    if request.method == 'GET':
+        page = request.GET.get('page')
+        num = request.GET.get('num')
+        sql = 'select * from User_user_logs'
+        if page and num:
+            result = getpage(sql,page,num)
+        elif page:
+            result = getpage(sql,page)
+        else:
+            result = {
+                'page_data': '',
+                'page_range': '',
+                'current_page': '',
+                'max_page': '',
+                'page_num':''
+            }
+    else:
+        result = {
+            'page_data': '',
+            'page_range': '',
+            'current_page': '',
+            'max_page': '',
+            'page_num': ''
+        }
     return JsonResponse(result)

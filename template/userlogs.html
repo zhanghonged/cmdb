@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}
+    用户日志
+{% endblock %}
+
+{% block style %}
+    <script src="{% static 'jquery/jquery-1.10.1.js' %}"></script>
+    <script>
+        $(function () {
+            Vue.use(VueResource);
+            Vue.http.options.emulateJSON = true;
+
+            new Vue(
+                {
+                    el:'#userLogs',
+                    data:{
+                        logs_data:'',
+                        logs_current:'',
+                        logs_page_num:'',
+                        logs_range: '',
+                        logs_maxpage: ''
+                    },
+                    created:function () {
+                        var url = '{% url 'user_logs_data' %}'+ '?page=1';
+                        this.$http.get(url).then(
+                            function (data) {
+                                //console.log(data);
+                                this.logs_data = data.data.page_data;
+                                this.logs_current = data.data.current_page;
+                                this.logs_page_num = data.data.page_num;
+                                this.logs_range = data.data.page_range;
+                                this.logs_maxpage = data.data.max_page;
+                            },
+                            function (response) {
+                                console.log(response);
+                            }
+                        )
+                    },
+                    methods:{
+                        getpage:function (page) {
+                            var url = '{% url 'user_logs_data' %}' + '?page=' + page;
+                            this.$http.get(url).then(
+                                function (data) {
+                                this.logs_data = data.data.page_data;
+                                this.logs_current = data.data.current_page;
+                                this.logs_page_num = data.data.page_num;
+                                this.logs_range = data.data.page_range;
+                                this.logs_maxpage = data.data.max_page;
+                                },
+                                function (response) {
+                                    console.log(response);
+                                }
+                            )
+                        }
+                    }
+                }
+            )
+        })
+    </script>
+{% endblock %}
+
+{% block label %}
+    用户日志
+{% endblock %}
+
+{% block content %}
+{% verbatim myblock %}
+  <!-- START panel-->
+  <div class="panel panel-default" id = "userLogs">
+    <div class="panel-heading">用户操作日志</div>
+    <!-- START -->
+
+    <table   class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>用户</th>
+          <th>动作</th>
+          <th>时间</th>
+          <th check-all="check-all"> <label class="i-checks">
+              <input type="checkbox"  >
+              <i></i></label>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(log,index) in logs_data">
+          <td>{{ (logs_current - 1)*logs_page_num + index + 1 }}</td>
+          <td>{{ log.username }}</td>
+          <td>{{ log.action }}</td>
+            <!--处理日期和时间中间带T的问题-->
+          <td>{{ new Date(+new Date(log.action_time)+8*3600*1000).toISOString().replace(/T/g,' ').replace(/\.[\d]{3}Z/,'')  }}</td>
+          <td><div class="checkbox c-checkbox">
+              <label class="i-checks">
+                <input type="checkbox"  >
+                <i></i></label>
+            </div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- END -->
+    <div class="panel-footer">
+      <div class="row">
+        <div class="col col-md-6">
+          <div class="input-group">
+            <input type="text" placeholder="Search" class="input-sm form-control" />
+            <span class="input-group-btn">
+            <button type="button" class="btn btn-sm btn-default">Search</button>
+            </span> </div>
+        </div>
+        <div class="col col-md-4"></div>
+        <div class="col col-md-2">
+          <div class="input-group pull-right">
+            <select class="input-sm form-control">
+              <option value="0">Bulk action</option>
+              <option value="1">Delete</option>
+              <option value="2">Clone</option>
+              <option value="3">Export</option>
+            </select>
+            <span class="input-group-btn">
+            <button class="btn btn-sm btn-default">Apply</button>
+            </span> </div>
+        </div>
+      </div>
+    </div>
+
+  <!--分页-->
+    <nav aria-label="Page navigation" class="">
+                    <ul class="pagination">
+                        <li v-if="logs_current == 1" class="disabled">
+                            <a aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li v-if="logs_current > 1">
+                            <a v-on:click="getpage(logs_current-1)" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        <li v-for="page in logs_range" v-bind:class="{ 'active': page == logs_current }">
+                            <a herf="#" v-on:click="getpage(page)">{{ page }}</a>
+                        </li>
+
+
+                        <li v-if="logs_current == logs_maxpage" class="disabled">
+                            <a aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li v-if="logs_current < logs_maxpage">
+                            <a v-on:click="getpage(logs_current+1)" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+  </div>
+  <!-- END panel-->
+{% endverbatim myblock %}
+{% endblock %}
