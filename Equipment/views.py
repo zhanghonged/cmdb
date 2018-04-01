@@ -281,30 +281,8 @@ def pc_add(request):
 @logrecord
 def pc_edit(request):
     result = {'status':'error','data':{},'message':''}
-    # 如果是get请求，返回当前pc的数据，用于vue前台默认展示
-    if request.method == 'GET':
-        pid = request.GET.get('pid')
-        if pid:
-            try:
-                pc = Pc.objects.get(id=pid)
-            except Exception as e:
-                print e
-            else:
-                result['data']['id'] = pc.id
-                result['data']['user'] = pc.user
-                result['data']['ip'] = pc.ip
-                result['data']['mac'] = pc.mac
-                result['data']['cpu'] = pc.cpu
-                result['data']['disk'] = pc.disk
-                result['data']['memory'] = pc.memory
-                result['data']['display'] = pc.display
-                result['data']['department'] = pc.department
-                result['data']['note'] = pc.note
-                result['status'] = 'success'
-        else:
-            result['message'] = 'error'
     # 如果是post请求，则为修改数据
-    elif request.method == 'POST':
+    if request.method == 'POST':
         pid = request.POST.get('pid')
         user = request.POST.get('user')
         ip = request.POST.get('ip')

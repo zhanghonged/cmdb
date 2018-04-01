@@ -75,17 +75,11 @@
                         },
                         //vue ajax get 请求 ,用于从后台获取当前pc的值
                         pcedit:function (id) {
-                            var url = '/eq/pc_edit/?pid=' + id;
-                            this.$http.get(url).then(
-                                //请求成功
-                                function (data) {
-                                    this.pc_edit = data.data.data
-                                },
-                                //请求失败
-                                function (response) {
-                                    console.log(response);
+                            for(var p of this.pc_data){
+                                if(p.id == id){
+                                    this.pc_edit = p;
                                 }
-                            )
+                            }
                         },
                         //vue ajax post请求，用于post提交修改pc信息
                         pcedit_save:function (id) {
