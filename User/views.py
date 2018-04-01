@@ -477,7 +477,16 @@ def user_logs_data(request):
     if request.method == 'GET':
         page = request.GET.get('page')
         num = request.GET.get('num')
-        sql = 'select * from User_user_logs'
+        keyword = request.GET.get('search', '').strip()
+        if keyword:
+            sql = (
+                  "select * from User_user_logs"
+                  " where User_user_logs.username LIKE" +" '%" + keyword + "%'"
+                  " or User_user_logs.action LIKE " +" '%" + keyword + "%'"
+                  " or User_user_logs.action_time LIKE" +" '%" + keyword + "%'"
+            )
+        else:
+            sql = 'select * from User_user_logs'
         if page and num:
             result = getpage(sql,page,num)
         elif page:

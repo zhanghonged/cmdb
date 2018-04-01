@@ -19,7 +19,8 @@
                         logs_current:'',
                         logs_page_num:'',
                         logs_range: '',
-                        logs_maxpage: ''
+                        logs_maxpage: '',
+                        logs_search:''
                     },
                     created:function () {
                         var url = '{% url 'user_logs_data' %}'+ '?page=1';
@@ -38,8 +39,13 @@
                         )
                     },
                     methods:{
-                        getpage:function (page) {
-                            var url = '{% url 'user_logs_data' %}' + '?page=' + page;
+                        getpage:function (page,keyword) {
+                            if(keyword){
+                                var search = keyword;
+                            }else {
+                                search = this.logs_search;
+                            }
+                            var url = '{% url 'user_logs_data' %}' + '?page=' + page + '&search=' + search;
                             this.$http.get(url).then(
                                 function (data) {
                                 this.logs_data = data.data.page_data;
@@ -52,6 +58,11 @@
                                     console.log(response);
                                 }
                             )
+                        },
+                        search:function () {
+                            var keyword = this.logs_search;
+                            var page = 1;
+                            this.getpage(page,keyword);
                         }
                     }
                 }
@@ -78,10 +89,6 @@
           <th>用户</th>
           <th>动作</th>
           <th>时间</th>
-          <th check-all="check-all"> <label class="i-checks">
-              <input type="checkbox"  >
-              <i></i></label>
-          </th>
         </tr>
       </thead>
       <tbody>
@@ -91,11 +98,6 @@
           <td>{{ log.action }}</td>
             <!--处理日期和时间中间带T的问题-->
           <td>{{ new Date(+new Date(log.action_time)+8*3600*1000).toISOString().replace(/T/g,' ').replace(/\.[\d]{3}Z/,'')  }}</td>
-          <td><div class="checkbox c-checkbox">
-              <label class="i-checks">
-                <input type="checkbox"  >
-                <i></i></label>
-            </div></td>
         </tr>
       </tbody>
     </table>
@@ -105,22 +107,9 @@
       <div class="row">
         <div class="col col-md-6">
           <div class="input-group">
-            <input type="text" placeholder="Search" class="input-sm form-control" />
+            <input type="text" placeholder="Search" class="input-sm form-control" v-model="logs_search" />
             <span class="input-group-btn">
-            <button type="button" class="btn btn-sm btn-default">Search</button>
-            </span> </div>
-        </div>
-        <div class="col col-md-4"></div>
-        <div class="col col-md-2">
-          <div class="input-group pull-right">
-            <select class="input-sm form-control">
-              <option value="0">Bulk action</option>
-              <option value="1">Delete</option>
-              <option value="2">Clone</option>
-              <option value="3">Export</option>
-            </select>
-            <span class="input-group-btn">
-            <button class="btn btn-sm btn-default">Apply</button>
+            <button type="button" class="btn btn-sm btn-default" v-on:click="search()">Search</button>
             </span> </div>
         </div>
       </div>
