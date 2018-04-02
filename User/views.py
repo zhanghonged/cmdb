@@ -467,23 +467,24 @@ def group_del(request):
             result['data'] = '组ID不存在'
     return JsonResponse(result)
 
-
+@loginValid
 def user_logs(request):
     uid = request.COOKIES.get('id')
     user = CMDBUser.objects.get(id=uid)
     return render(request,'userlogs.html',locals())
 
+@loginValid
 def user_logs_data(request):
-    if request.method == 'GET':
-        page = request.GET.get('page')
-        num = request.GET.get('num')
-        keyword = request.GET.get('search', '').strip()
+    if request.method == 'POST':
+        page = request.POST.get('page')
+        num = request.POST.get('num')
+        keyword = request.POST.get('search', '').strip().encode('utf8')
+
         if keyword:
             sql = (
                   "select * from User_user_logs"
                   " where User_user_logs.username LIKE" +" '%" + keyword + "%'"
                   " or User_user_logs.action LIKE " +" '%" + keyword + "%'"
-                  " or User_user_logs.action_time LIKE" +" '%" + keyword + "%'"
             )
         else:
             sql = 'select * from User_user_logs'

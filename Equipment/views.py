@@ -186,10 +186,10 @@ def pc_list_data(request):
     :param request:
     :return:
     '''
-    if request.method == 'GET':
-        page = request.GET.get('page')
-        num = request.GET.get('num')
-        keyword = request.GET.get('search','').strip()
+    if request.method == 'POST':
+        page = request.POST.get('page')
+        num = request.POST.get('num')
+        keyword = request.POST.get('search','').strip().encode('utf8')
         #print type(keyword)
         #print keyword
         if keyword:

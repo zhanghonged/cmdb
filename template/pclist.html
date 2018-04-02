@@ -33,8 +33,11 @@
                         pc_page_num:''
                     },
                     created: function () {
-                        var url = '/eq/pc_list_data/?page=1';
-                        this.$http.get(url).then(
+                        var url = '/eq/pc_list_data/';
+                        var dict = {};
+                        dict['page'] = 1;
+                        dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                        this.$http.post(url,dict).then(
                             //请求成功
                             function (data) {
                                 //console.log(data);
@@ -58,8 +61,12 @@
                             }else{
                                 var search = this.pc_search;
                             }
-                            var url = '/eq/pc_list_data/?page=' + page + '&search=' + search;
-                            this.$http.get(url).then(
+                            var url = '/eq/pc_list_data/';
+                            var dict = {};
+                            dict['page'] = page;
+                            dict['search'] = search;
+                            dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                            this.$http.post(url,dict).then(
                                 function (data) {
                                     //console.log(data);
                                     this.pc_data = data.data.page_data;

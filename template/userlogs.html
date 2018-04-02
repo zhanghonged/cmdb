@@ -23,8 +23,11 @@
                         logs_search:''
                     },
                     created:function () {
-                        var url = '{% url 'user_logs_data' %}'+ '?page=1';
-                        this.$http.get(url).then(
+                        var url = '{% url 'user_logs_data' %}';
+                        var dict = {};
+                        dict['page'] = 1;
+                        dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                        this.$http.post(url,dict).then(
                             function (data) {
                                 //console.log(data);
                                 this.logs_data = data.data.page_data;
@@ -45,8 +48,12 @@
                             }else {
                                 search = this.logs_search;
                             }
-                            var url = '{% url 'user_logs_data' %}' + '?page=' + page + '&search=' + search;
-                            this.$http.get(url).then(
+                            var url = '{% url 'user_logs_data' %}';
+                            var dict = {};
+                            dict['page'] = page;
+                            dict['search'] = search;
+                            dict['csrfmiddlewaretoken'] = '{{ csrf_token }}';
+                            this.$http.post(url,dict).then(
                                 function (data) {
                                 this.logs_data = data.data.page_data;
                                 this.logs_current = data.data.current_page;
